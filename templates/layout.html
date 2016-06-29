@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <!--
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap/css/bootstrap.css') }}">
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap/css/GIDI.css') }}">
@@ -6,94 +7,11 @@
 <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.js') }}"> </script>
 <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"> </script>
 -->
-<head>
-    <meta charset="UTF-8">
+
     <title> CasaTransports </title>
-</head>
 
-
-<div class="container" role="main" id="main">
-
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-
-            {% if not session.connexion %}
-                <ul class="nav navbar-nav navbar-left">
-                    <a class="navbar-brand" href="{{ url_for('home') }}">Management and operation of data</a>
-                </ul>
-            {% else %}
-                <ul class="nav navbar-nav navbar-left">
-                    <a class="navbar-brand" href="{{ url_for('home') }}">MOD</a>
-                </ul>
-
-            <!--
-                <ul class="nav navbar-nav">
-
-                {% if active == "top_k" %}
-                    <li id="top_k" class="active">
-                {% else %}
-                    <li id="top_k" class="">
-                {% endif %}
-                        <a href="{{ url_for('top_k') }}"> Top K </a>
-                    </li>
-
-                {% if active == "threshold" %}
-                    <li id="threshold" class="active">
-                {% else %}
-                    <li id="threshold" class="">
-                {% endif %}
-                        <a href="{{ url_for('threshold') }}"> Threshold </a>
-                    </li>
-
-                {% if active == "index_local" %}
-                    <li id="index_local" class="active">
-                {% else %}
-                    <li id="index_local" class="">
-                {% endif %}
-                        <a href="{{ url_for('index_local') }}"> Creation d'index local </a>
-                    </li>
-
-                {% if active == "index_global" %}
-                    <li id="index_global" class="active">
-                {% else %}
-                    <li id="index_global" class="">
-                {% endif %}
-                        <a href="{{ url_for('index_global') }}"> Creation d'index global </a>
-                    </li>
-
-                {% if active == "db_link" %}
-                    <li id="index_global_MD" class="active">
-                {% else %}
-                    <li id="index_global_MD" class="">
-                {% endif %}
-                        <a href="{{ url_for('index_global_MD') }}"> Creation IG avec Moyenne dispersion </a>
-                    </li>
-                </ul>
-            {% endif %}
-            -->
-            <!--
-            <ul class="nav navbar-nav navbar-right">
-                {% if not session.connexion %}
-                    <a  href="{{ url_for('db_connect') }}">
-                        <button id="btn_connect"  type="button" class="btn btn-lg btn-gidi">
-                            log in
-                        </button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('db_disconnect') }}">
-                        <button id="btn_disconnect" type="button" class="btn btn-lg btn-gidi" >
-                            log out
-                        </button>
-                    </a>
-                {% endif %}
-            </ul>
-            -->
-        </div>
-    </nav>
-
-
+<div>
     {% block container %}
     {% endblock %}
-
 </div>
 

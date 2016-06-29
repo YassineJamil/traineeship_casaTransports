@@ -25,7 +25,7 @@ def connect():
 
 @app.route('/')
 def home():
-    return render_template('home1.html')
+    return render_template('home.html')
 
 
 
