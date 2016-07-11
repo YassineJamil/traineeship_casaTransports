@@ -2,6 +2,7 @@
 """
 """
 
+import os
 import psycopg2
 from switch import Switch
 import re
@@ -16,9 +17,6 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-#File with disease's name
-fmaladie_name = "maladies_bovines.txt"
-
 def connect():
     return psycopg2.connect("dbname='"+ session['db_name'] +
                             "' user='"+ session['user'] +
@@ -29,11 +27,13 @@ def connect():
 def home():
     return render_template('home.html')
 
+# la deconnexion et renvoi à la page d'acceuil
 @app.route('/db_disconnect')
 def db_disconnect():
     session.clear()
     return redirect(url_for('home'))
 
+#la connexion
 @app.route('/db_connect/', methods=['GET', 'POST'])
 def db_connect():
     if not session.get('connexion'):
@@ -67,33 +67,16 @@ def db_connect():
 
     return render_template("db_connect.html")
 
-@app.route('/db_action', methods=['GET', 'POST'])
-def db_action():
-    if session.get('connexion'):
-        if request.method == 'POST':
-            with Switch(request.form['action']) as case:
-                if case("top_K"):
-                    return redirect(url_for("top_k"))
-                if case("threshold"):
-                    return redirect(url_for("threshold"))
-                if case("index_local"):
-                    return redirect(url_for("index_local"))
-                if case("index_global"):
-                    return redirect(url_for("index_global"))
-                if case("db_link"):
-                    return redirect(url_for("db_link"))
-                if case.default:
-                    return redirect(url_for('error'))
-        else:
-            return render_template('home.html')
-    else:
-        return redirect(url_for('error'))
 
+# tous les renvois d'erreur
 @app.route('/error')
 def error():
     return render_template("db_error.html")
+# encoding key
+a = os.urandom(24)
+app.secret_key = a.encode('base-64')
+# or app.secret_key = '7vNivdefmjkPOz3kUG7aaErD0Z2lPd1G'
 
-app.secret_key = '7vNivdefmjkPOz3kUG7aaErD0Z2lPd1G'
-
+#launch the application
 if __name__ == '__main__':
     app.run()

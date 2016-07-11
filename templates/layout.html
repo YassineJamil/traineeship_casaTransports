@@ -1,16 +1,49 @@
 <!DOCTYPE html>
+<html lang="en">
 
-<!--
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap/css/bootstrap.css') }}">
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap/css/GIDI.css') }}">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap/css/SRCDT.css') }}">
 
 <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.js') }}"> </script>
 <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"> </script>
--->
 
+
+<head>
+    <meta charset="UTF-8">
     <title> CasaTransports </title>
+</head>
 
-<div>
+
+<div class="container" role="main" id="main">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- si non connecter faire ... si connecter faire ...-->
+            {% if not session.connexion %}
+                <ul class="nav navbar-nav navbar-left">
+                    <a class="navbar-brand" href="{{ url_for('home') }}">Solution Reporting de Données CasaTransports</a>
+                </ul>
+            {% else %}
+                <ul class="nav navbar-nav navbar-left">
+                    <a class="navbar-brand" href="{{ url_for('home') }}">SRDCT</a>
+                </ul>
+            {% endif %}
+            <ul class="nav navbar-nav navbar-right">
+                {% if not session.connexion %}
+                    <a  href="{{ url_for('db_connect') }}">
+                        <button id="btn_connect"  type="button" class="btn btn-lg btn-gidi">
+                            log in
+                        </button>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('db_disconnect') }}">
+                        <button id="btn_disconnect" type="button" class="btn btn-lg btn-gidi" >
+                            log out
+                        </button>
+                    </a>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
     {% block container %}
     {% endblock %}
 </div>
