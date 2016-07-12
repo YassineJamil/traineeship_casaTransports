@@ -1,4 +1,16 @@
 {% extends "container.html" %}
 {% block body %}
-     ERROR
+      <div class="row">
+            <div class="col-sm-6 center">
+                <h3> Une erreur s'est produite, veuillez réessayer. MERCI! </h3>
+                 <!-- changer l'adresse du home lors du deploiment-->
+                <a target="_blank" href="http://127.0.0.1:5000/">
+                    <input type="image"
+                           id="erreur"
+                           class="profile_picture"
+                           src="http://cdn2.hubspot.net/hubfs/360031/feature_error.png">
+                </a>
+            </div>
+      </div>
+
 {% endblock %}

@@ -20,24 +20,24 @@
             <!-- si non connecter faire ... si connecter faire ...-->
             {% if not session.connexion %}
                 <ul class="nav navbar-nav navbar-left">
-                    <a class="navbar-brand" href="{{ url_for('home') }}">Solution Reporting de Données CasaTransports</a>
+                    <a class="navbar-brand" href="{{ url_for('home') }}">SRDCT</a>
                 </ul>
             {% else %}
                 <ul class="nav navbar-nav navbar-left">
-                    <a class="navbar-brand" href="{{ url_for('home') }}">SRDCT</a>
+                    <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
                 </ul>
             {% endif %}
             <ul class="nav navbar-nav navbar-right">
                 {% if not session.connexion %}
                     <a  href="{{ url_for('db_connect') }}">
-                        <button id="btn_connect"  type="button" class="btn btn-lg btn-gidi">
-                            log in
+                        <button id="btn_connect"  type="button" class="btn btn-lg btn-connect">
+                            Connexion
                         </button>
                     </a>
                 {% else %}
                     <a href="{{ url_for('db_disconnect') }}">
-                        <button id="btn_disconnect" type="button" class="btn btn-lg btn-gidi" >
-                            log out
+                        <button id="btn_disconnect" type="button" class="btn btn-lg btn-connect" >
+                            Deconnexion
                         </button>
                     </a>
                 {% endif %}
