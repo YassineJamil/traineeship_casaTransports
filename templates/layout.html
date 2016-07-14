@@ -25,7 +25,17 @@
             {% else %}
                 <ul class="nav navbar-nav navbar-left">
                     <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
+
+                {% if active == "tableinspector" %}
+                    <li id="tableinspector" class="active">
+                {% else %}
+                    <li id="tableinspector" class="">
+                {% endif %}
+                        <a class="navbar-brand" href="{{ url_for('tableinspector') }}"> inspector </a>
+                    </li>
                 </ul>
+
+
             {% endif %}
             <ul class="nav navbar-nav navbar-right">
                 {% if not session.connexion %}

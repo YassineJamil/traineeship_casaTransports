@@ -67,6 +67,32 @@ def db_connect():
 
     return render_template("db_connect.html")
 
+@app.route('/db_action', methods=['GET', 'POST'])
+def db_action():
+    if session.get('connexion'):
+        if request.method == 'POST':
+            with Switch(request.form['action']) as case:
+                if case("tableinspector"):
+                    return redirect(url_for("tableinspector"))
+                if case.default:
+                    return redirect(url_for('error'))
+        else:
+            return render_template('home.html')
+    else:
+        return redirect(url_for('error'))
+
+
+@app.route('/tableinspector', methods=['GET', 'POST'])
+def tableinspector():
+    if session.get('connexion'):
+        if request.method == 'POST':
+            annee = request.form['annee']
+            print annee
+            return render_template("tableinspector_result.html", active="tableinspector")
+        return render_template("tableinspector.html", active="tableinspector")
+    else:
+        return redirect(url_for('error'))
+
 
 # tous les renvois d'erreur
 @app.route('/error')

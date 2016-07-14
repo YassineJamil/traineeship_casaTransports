@@ -27,20 +27,20 @@ create table test (
 -- OR
 
 create table test4 (
-	dateValidation timestamp without time zone,
+	dateValidation date,
 	numProduit integer,
-	lcpt char(20),
-	nb1Montees integer,
+	libelleCourtProduitTitre char(20),
+	nb1ereMontees integer,
 	nbCorresp integer,
 	nbValidations integer,
-	dirValidation integer,
+	directionValidation integer,
 	numLieu integer,
 	libelleArret char(20),
 	codeEmplacement char(20),
 	codeSite char(10),
-	llpt char(20),
+	libelleLongProduitTitre char(20),
 	typeSupport integer,
-	lts char(20)
+	libelleTypeSupport char(20)
 	);
 
 	-- remplir la table
