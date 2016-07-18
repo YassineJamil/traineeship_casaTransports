@@ -1,2 +1,3 @@
+import Numpy
+import matplotlib
 from pylab import *
-NumPy et matplotlib
