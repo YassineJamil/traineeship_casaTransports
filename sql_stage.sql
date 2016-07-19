@@ -80,3 +80,93 @@ WITH DELIMITER ',';
 -- exemple de traitement personaliser
 
 select numlieu from test3 order by dthroperation desc, libelarret desc;
+
+--------------------------------------------------------------------
+
+-- changement de directionvalidation ... SDC **
+ALTER TABLE avril_2016
+ALTER COLUMN directionvalidation TYPE char(10);
+
+UPDATE avril_2016
+SET directionvalidation = 'entree'
+WHERE directionvalidation = '1';
+
+UPDATE avril_2016
+SET directionvalidation = 'sortie'
+WHERE directionvalidation = '2';
+
+select * from avril_2016 where directionvalidation ='entree';
+
+----------------------------------------------------------------------
+--traitement de la somme
+
+drop table if exists somme;
+create table somme (
+datevalidation date,
+sommenb1eremonteesentree int,
+sommenbcorrespentree int,
+sommenbvalidationsentree int,
+sommenb1eremonteessortie int,
+sommenbcorrespsortie int,
+sommenbvalidationssortie int );
+insert into somme (datevalidation, sommenb1eremonteesentree, sommenbcorrespentree, sommenbvalidationsentree, sommenb1eremonteessortie, sommenbcorrespsortie, sommenbvalidationssortie )
+SELECT datevalidation ,SUM(nb1eremontees) ,SUM(nbcorresp),SUM(nbvalidations)
+FROM test
+GROUP BY datevalidation;
+
+---------------------------------------------------------------------------------
+-- extraire le mois
+
+select * from mai_2016 where extract(month from datevalidation) = '05';
+
+---------------------------------------------------------------------------------
+-- le traitement d'un mois
+
+drop table if exists somme;
+create table somme (
+datevalidation date,
+sommenb1eremonteeentree int,
+sommenb1eremonteesortie int,
+sommenbcorrespentree int,
+sommenbcorrespsortie int,
+sommenbvalidationsentree int,
+sommenbvalidationssortie int );
+
+drop table if exists sommeentree;
+create table sommeentree (
+datevalidation date,
+sommenb1eremonteeentree int,
+sommenbcorrespentree int,
+sommenbvalidationsentree int);
+insert into sommeentree
+SELECT datevalidation ,SUM(nb1eremontees),SUM(nbcorresp),SUM(nbvalidations)
+FROM mai_2016
+where directionvalidation = 'entree'
+GROUP BY datevalidation;
+
+drop table if exists sommesortie;
+create table sommesortie (
+datevalidation date,
+sommenb1eremonteesortie int,
+sommenbcorrespsortie int,
+sommenbvalidationssortie int);
+insert into sommesortie
+SELECT datevalidation ,SUM(nb1eremontees),SUM(nbcorresp),SUM(nbvalidations)
+FROM mai_2016
+where directionvalidation = 'sortie'
+GROUP BY datevalidation;
+
+insert into somme
+SELECT sommeentree.datevalidation, sommenb1eremonteeentree,  sommenb1eremonteesortie, sommenbcorrespentree, sommenbcorrespsortie, sommenbvalidationsentree, sommenbvalidationssortie
+    FROM sommeentree, sommesortie
+    WHERE sommeentree.datevalidation = sommesortie.datevalidation;
+
+-- ordonnement de somme create table sommebuffer (like somme);
+
+insert into sommebuffer
+select * from somme order by datevalidation;
+
+delete from somme;
+
+insert into somme
+select * from sommebuffer;
