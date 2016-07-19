@@ -1,4 +1,5 @@
-# deux maniere de faire des graph .. la premiere simple
+# deux maniere de faire des graph ..
+# la premiere pylab et la deuxime plus traditionnel
 
 from pylab import *
 
