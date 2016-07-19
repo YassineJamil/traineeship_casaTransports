@@ -1,4 +1,3 @@
-'''
 # deux maniere de faire des graph .. la premiere simple
 
 from pylab import *
@@ -326,10 +325,10 @@ y = np.sin(theta)
 plt.plot(x, y)
 
 plt.show()
-'''
+
 
 print 'ok'
-'''
+
 # exemple de changement de courbe en photo
 
 import matplotlib.pyplot as plt
@@ -466,7 +465,7 @@ if 1:
 
     fig.savefig('ribbon_box.png')
     plt.show()
-'''
+
 
 
 
