@@ -129,8 +129,8 @@ def tableinspectormonth():
                 WHERE table_name LIKE '"""+ date_str +"""';
                 """
             )
-            check = cur1.fetchall()
-            if (check):
+            test = cur1.fetchall()
+            if (test):
                 cur1.execute(
                     """
                         drop table if exists somme;
@@ -190,16 +190,26 @@ def tableinspectormonth():
                 )
                 cur2.execute(
                     """
-                    SELECT * FROM somme;
+                    SELECT datevalidation FROM somme;
                     """
                 )
-                test = cur2.fetchall()
-                tab_res = []
-                for t in test:
-                    tab_res.append([str(t[0]),t[1],t[2],t[3],t[4],t[5],t[6]])
+                xdate = cur2.fetchall()
+                cur2.execute(
+                    """
+                    SELECT sommenb1eremonteeentree FROM somme;
+                    """
+                )
+                yvalidation = cur2.fetchall()
 
+                plot(xdate,yvalidation,"c:o", label="premiere montee")
+                title("Graph de la premiere montee")
+                legend()
+                ylim(0)
+                xlabel("Jours")
+                ylabel("Valeur 1ere montee")
+                show()
                 conn.commit()
-                return render_template("tableinspectormonth_result.html", active="tableinspectormonth", res=tab_res)
+                return render_template("tableinspectormonth_result.html", active="tableinspectormonth")
             else:
                 print "la date n'est pas bonne "
                 return render_template("tableinspectormonth_error.html", active="tableinspectormonth")

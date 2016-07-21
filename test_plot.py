@@ -287,7 +287,7 @@ from pylab import *
 x = array([0, 1, 1, 0, 0])
 y = array([0, 0, 1, 1, 0])
 plot(x, y)
-plt.axis("equal")
+axis("equal")
 
 show()
 

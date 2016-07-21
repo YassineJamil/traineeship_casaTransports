@@ -1,0 +1,43 @@
+{% extends "container.html" %}
+{% block body %}
+     <div class="table-responsive">
+     <table class="table-bordered">
+        <h2 class ="h2"> Données du mois </h2>
+
+        <thead> <!-- En-tête du tableau -->
+            <tr>
+                <th>Datevalidation </th>
+                <th> Nb1eremonteeentree </th>
+                <th> Nb1eremonteesortie </th>
+                <th> Nbcorrespentree </th>
+                <th> Nbcorrespsortie </th>
+                <th> Nbvalidationsentree </th>
+                <th> Nbvalidationssortie </th>
+            </tr>
+        </thead>
+          <!--
+        <tfoot>  Pied de tableau
+            <tr>
+                <th>Nom</th>
+                <th>Âge</th>
+                <th>Pays</th>
+            </tr>
+        </tfoot>
+          -->
+
+        <tbody> <!-- Corps du tableau -->
+            {% for t in res %}
+            <tr>
+                <td>{{ t[0] }}</td>
+                <td>{{ t[1] }}</td>
+                <td>{{ t[2] }}</td>
+                <td>{{ t[3] }}</td>
+                <td>{{ t[4] }}</td>
+                <td>{{ t[5] }}</td>
+                <td>{{ t[6] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+     </table>
+     </div>
+{% endblock %}
