@@ -1,3 +1,4 @@
+'''
 # deux maniere de faire des graph ..
 # la premiere pylab et la deuxime plus traditionnel
 
@@ -467,11 +468,18 @@ if 1:
     fig.savefig('ribbon_box.png')
     plt.show()
 
+#sauvegarder le graph
 
+from pylab import *
 
+x = array([0, 1, 1, 0, 0])
+y = array([0, 0, 1, 1, 0])
+plot(x, y)
+xlim(-5, 2)
+ylim(-1, 2)
 
-
-
+savefig('test.png')
+'''
 
 
 

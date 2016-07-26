@@ -8,8 +8,8 @@ import csv
 #cr = csv.reader(open(vj1,"rb"))
 #for row in cr:
    # print row
-fname = "C:/Program Files/PostgreSQL/9.5/CSV/sdc_4_16_bis.csv"
-fname1 = "C:/Program Files/PostgreSQL/9.5/CSV/sdc_4_16.csv"
+fname = "C:/Program Files/PostgreSQL/9.5/CSV/sdc_2_16_bis.csv"
+fname1 = "C:/Program Files/PostgreSQL/9.5/CSV/sdc_2_16.csv"
 file1 = open(fname1, "wb")
 file = open(fname, "rb")
 

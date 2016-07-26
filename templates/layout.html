@@ -33,8 +33,15 @@
                 {% endif %}
                         <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> Inspector_month </a>
                     </li>
-                </ul>
 
+                {% if active == "tableinspectoryear" %}
+                    <li id="tableinspectoryear" class="active">
+                {% else %}
+                    <li id="tableinspectoryear" class="">
+                {% endif %}
+                        <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> Inspector_year </a>
+                    </li>
+                </ul>
 
             {% endif %}
             <ul class="nav navbar-nav navbar-right">

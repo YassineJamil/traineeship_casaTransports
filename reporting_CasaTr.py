@@ -2,6 +2,7 @@
 """
 """
 
+from matplotlib._png import read_png
 import os
 import psycopg2
 from switch import Switch
@@ -102,6 +103,8 @@ def db_action():
             with Switch(request.form['action']) as case:
                 if case("tableinspectormonth"):
                     return redirect(url_for("tableinspectormonth"))
+                if case("tableinspectoryear"):
+                    return redirect(url_for("tableinspectoryear"))
                 if case.default:
                     return redirect(url_for('error'))
         else:
@@ -133,8 +136,8 @@ def tableinspectormonth():
             if (check):
                 cur1.execute(
                     """
-                        drop table if exists somme;
-                        create table somme (
+                        drop table if exists somme_mois;
+                        create table somme_mois (
                         datevalidation date,
                         sommenb1eremonteeentree int,
                         sommenb1eremonteesortie int,
@@ -167,20 +170,20 @@ def tableinspectormonth():
                         where directionvalidation = 'sortie'
                         GROUP BY datevalidation;
 
-                        insert into somme
+                        insert into somme_mois
                         SELECT sommeentree.datevalidation, sommenb1eremonteeentree,  sommenb1eremonteesortie, sommenbcorrespentree, sommenbcorrespsortie, sommenbvalidationsentree, sommenbvalidationssortie
                             FROM sommeentree, sommesortie
                             WHERE sommeentree.datevalidation = sommesortie.datevalidation;
 
                         -- ordonnement de somme create table sommebuffer (like somme);
                         drop table if exists sommebuffer;
-                        create table sommebuffer (like somme);
+                        create table sommebuffer (like somme_mois);
                         insert into sommebuffer
-                        select * from somme order by datevalidation;
+                        select * from somme_mois order by datevalidation;
 
-                        delete from somme;
+                        delete from somme_mois;
 
-                        insert into somme
+                        insert into somme_mois
                         select * from sommebuffer;
                         drop table if exists sommebuffer;
                         drop table if exists sommesortie;
@@ -190,7 +193,7 @@ def tableinspectormonth():
                 )
                 cur2.execute(
                     """
-                    SELECT * FROM somme;
+                    SELECT * FROM somme_mois;
                     """
                 )
                 test = cur2.fetchall()
@@ -201,13 +204,137 @@ def tableinspectormonth():
                 conn.commit()
                 return render_template("tableinspectormonth_result.html", active="tableinspectormonth", res=tab_res)
             else:
-                print "la date n'est pas bonne "
+                #la date n'est pas bonne
                 return render_template("tableinspectormonth_error.html", active="tableinspectormonth")
 
         return render_template("tableinspectormonth.html", active="tableinspectormonth")
     else:
         return redirect(url_for('error'))
 
+@app.route('/tableinspectoryear', methods=['GET', 'POST'])
+def tableinspectoryear():
+    if session.get('connexion'):
+        if request.method == 'POST':
+            conn = connect()
+            cur1 = conn.cursor()
+            cur2 = conn.cursor()
+            date_nbr = request.form['annee']
+            cur1.execute(
+                """SELECT table_name
+                FROM INFORMATION_SCHEMA.TABLES
+                WHERE table_name LIKE '%""" + str(date_nbr) + """';
+                """
+            )
+            check = cur1.fetchall()
+
+            if (check):
+                cur1.execute(
+                    """
+                        drop table if exists somme_annee;
+                        create table somme_annee (
+                        datevalidation CHAR(20),
+                        sommenb1eremonteeentree int,
+                        sommenb1eremonteesortie int,
+                        sommenbcorrespentree int,
+                        sommenbcorrespsortie int,
+                        sommenbvalidationsentree int,
+                        sommenbvalidationssortie int );
+                    """
+                )
+
+                for date_str in check:
+                    cur1.execute(
+                        """
+                            DROP TABLE IF EXISTS les_mois;
+                            CREATE TABLE les_mois(
+                            datevalidation CHAR(20)
+                            );
+                            INSERT INTO les_mois
+                            values('"""+ date_str[0] +"""');
+                            drop table if exists somme_mois;
+                            create table somme_mois (
+                            datevalidation date,
+                            sommenb1eremonteeentree int,
+                            sommenb1eremonteesortie int,
+                            sommenbcorrespentree int,
+                            sommenbcorrespsortie int,
+                            sommenbvalidationsentree int,
+                            sommenbvalidationssortie int );
+
+                            drop table if exists sommeentree;
+                            create table sommeentree (
+                            datevalidation date,
+                            sommenb1eremonteeentree int,
+                            sommenbcorrespentree int,
+                            sommenbvalidationsentree int);
+                            insert into sommeentree
+                            SELECT datevalidation ,SUM(nb1eremontees),SUM(nbcorresp),SUM(nbvalidations)
+                            FROM """ + date_str[0] + """
+                            where directionvalidation = 'entree'
+                            GROUP BY datevalidation;
+
+                            drop table if exists sommesortie;
+                            create table sommesortie (
+                            datevalidation date,
+                            sommenb1eremonteesortie int,
+                            sommenbcorrespsortie int,
+                            sommenbvalidationssortie int);
+                            insert into sommesortie
+                            SELECT datevalidation ,SUM(nb1eremontees),SUM(nbcorresp),SUM(nbvalidations)
+                            FROM """ + date_str[0] + """
+                            where directionvalidation = 'sortie'
+                            GROUP BY datevalidation;
+
+                            insert into somme_mois
+                            SELECT sommeentree.datevalidation, sommenb1eremonteeentree,  sommenb1eremonteesortie, sommenbcorrespentree, sommenbcorrespsortie, sommenbvalidationsentree, sommenbvalidationssortie
+                                FROM sommeentree, sommesortie
+                                WHERE sommeentree.datevalidation = sommesortie.datevalidation;
+
+                            -- ordonnement de somme create table sommebuffer (like somme);
+                            drop table if exists sommebuffer;
+                            create table sommebuffer (like somme_mois);
+                            insert into sommebuffer
+                            select * from somme_mois order by datevalidation;
+
+                            delete from somme_mois;
+
+                            insert into somme_mois
+                            select * from sommebuffer;
+                            drop table if exists sommebuffer;
+                            drop table if exists sommesortie;
+                            drop table if exists sommeentree;
+                            DROP TABLE IF EXISTS les_mois;
+                            """
+                    )
+
+                    cur2.execute(
+                        """
+                        INSERT INTO somme_annee
+                        SELECT les_mois.datevalidation,SUM(somme_mois.sommenb1eremonteeentree),SUM(somme_mois.sommenb1eremonteesortie),
+                        SUM(somme_mois.sommenbcorrespentree), SUM(somme_mois.sommenbcorrespsortie),
+                        SUM(somme_mois.sommenbvalidationsentree), SUM(somme_mois.sommenbvalidationssortie)
+                        FROM les_mois, somme_mois
+                        GROUP BY les_mois.datevalidation;
+                        """
+                    )
+                x = array([0, 1, 2, 0, 0])
+                y = array([0, 0, 2, 1, 0])
+                plot(x, y)
+                xlim(-5, 1)
+                ylim(-1, 7)
+                os.remove('static/images/test1.png')
+                savefig('static/images/test1.png')
+                conn.commit()
+                return render_template("tableinspectoryear_result.html", active="tableinspectoryear")
+            else:
+                #la date n'est pas bonne
+                return render_template("tableinspectoryear_error.html", active="tableinspectoryear")
+
+
+
+        return render_template("tableinspectoryear.html", active="tableinspectoryear")
+    else:
+        return redirect(url_for('error'))
 
 # tous les renvois d'erreur
 @app.route('/error')

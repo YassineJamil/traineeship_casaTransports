@@ -1,0 +1,13 @@
+{% extends "container.html" %}
+{% block body %}
+    <div class="container" id="db_connect_form">
+        <form class="form-signin center" action="{{ url_for('tableinspectoryear') }}" method=post>
+            <h2 class="form-signin-heading"> L'année voulu :  </h2>
+            <div class="upspace">
+            <label for="annee" class="sr-only">annee</label>
+            <input type="year" id="annee" name="annee" required>
+            </div>
+            <button class="btn btn-lg btn-connect btn-block" type="submit">GO</button>
+        </form>
+    </div>
+{% endblock %}
