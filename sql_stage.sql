@@ -6,26 +6,6 @@ CREATE DATABASE "SDC"
 
 
 -- creation de table
-create table test (
-	id integer primary key,
-	dateValidation timestamp without time zone,
-	numProduit integer,
-	lcpt char(20),
-	nb1Montees integer,
-	nbCorresp integer,
-	nbValidations integer,
-	dirValidation integer,
-	numLieu integer,
-	libelleArret char(20),
-	codeEmplacement char(20),
-	codeSite char(10),
-	llpt char(20),
-	typeSupport integer,
-	lts char(20)
-	);
-
--- OR
-
 create table test4 (
 	dateValidation date,
 	numProduit integer,
@@ -84,7 +64,9 @@ select numlieu from test3 order by dthroperation desc, libelarret desc;
 --------------------------------------------------------------------
 
 -- changement de directionvalidation ... SDC **
-ALTER TABLE avril_2016
+
+
+select * from avril_20ALTER TABLE avril_2016
 ALTER COLUMN directionvalidation TYPE char(10);
 
 UPDATE avril_2016
@@ -93,9 +75,7 @@ WHERE directionvalidation = '1';
 
 UPDATE avril_2016
 SET directionvalidation = 'sortie'
-WHERE directionvalidation = '2';
-
-select * from avril_2016 where directionvalidation ='entree';
+WHERE directionvalidation = '2';16 where directionvalidation ='entree';
 
 ----------------------------------------------------------------------
 --traitement de la somme
@@ -170,3 +150,41 @@ delete from somme;
 
 insert into somme
 select * from sommebuffer;
+
+
+
+-- script complet de creation de table et de son remplissage, ne pas oublier de bien mentionner la date
+
+create table janvier_2015 (
+	dateValidation date,
+	numProduit integer,
+	libelleCourtProduitTitre char(20),
+	nb1ereMontees integer,
+	nbCorresp integer,
+	nbValidations integer,
+	directionValidation integer,
+	numLieu integer,
+	libelleArret char(20),
+	codeEmplacement char(20),
+	codeSite char(10),
+	libelleLongProduitTitre char(20),
+	typeSupport integer,
+	libelleTypeSupport char(20)
+	);
+
+COPY janvier_2015
+FROM 'C:/Program Files/PostgreSQL/9.5/CSV/sdc_1_15.csv'
+WITH DELIMITER ',';
+
+ALTER TABLE janvier_2015
+ALTER COLUMN directionvalidation TYPE char(10);
+
+UPDATE janvier_2015
+SET directionvalidation = 'entree'
+WHERE directionvalidation = '1';
+
+UPDATE janvier_2015
+SET directionvalidation = 'sortie'
+WHERE directionvalidation = '2';
+
+

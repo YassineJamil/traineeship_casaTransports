@@ -483,6 +483,3 @@ savefig('test.png')
 
 
 
-
-
-

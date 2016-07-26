@@ -24,6 +24,32 @@ def connect():
                             "' user='"+ session['user'] +
                             "' host='" + session['host'] +
                             "' password='" + session['password'] + "'")
+def monthstr_To_monthnbr(monthstr):
+    with Switch(monthstr) as case:
+        if case("janvier"):
+            return "01"
+        if case("fevrier"):
+            return "02"
+        if case("mars"):
+            return "03"
+        if case("avril"):
+            return "04"
+        if case("mai"):
+            return "05"
+        if case("juin"):
+            return "06"
+        if case("juillet"):
+            return "07"
+        if case("aout"):
+            return "08"
+        if case("septembre"):
+            return "09"
+        if case("octobre"):
+            return "10"
+        if case("novembre"):
+            return "11"
+        if case.default:
+            return "12"
 
 def monthnbr_To_monthstr(monthnbr):
     with Switch(monthnbr) as case:
@@ -196,9 +222,9 @@ def tableinspectormonth():
                     SELECT * FROM somme_mois;
                     """
                 )
-                test = cur2.fetchall()
+                result = cur2.fetchall()
                 tab_res = []
-                for t in test:
+                for t in result:
                     tab_res.append([str(t[0]),t[1],t[2],t[3],t[4],t[5],t[6]])
 
                 conn.commit()
@@ -218,15 +244,14 @@ def tableinspectoryear():
             conn = connect()
             cur1 = conn.cursor()
             cur2 = conn.cursor()
-            date_nbr = request.form['annee']
+            annee_nbr = request.form['annee']
             cur1.execute(
                 """SELECT table_name
                 FROM INFORMATION_SCHEMA.TABLES
-                WHERE table_name LIKE '%""" + str(date_nbr) + """';
+                WHERE table_name LIKE '%""" + str(annee_nbr) + """';
                 """
             )
             check = cur1.fetchall()
-
             if (check):
                 cur1.execute(
                     """
@@ -243,14 +268,21 @@ def tableinspectoryear():
                 )
 
                 for date_str in check:
+                    tab_date = str(date_str[0]).split("_")
+                    month_str = tab_date[0]
+                    year = tab_date[1]
+                    month_nbr = monthstr_To_monthnbr(month_str)
+                    date_nbr = year + '-' + month_nbr
                     cur1.execute(
+                        # date validation chagement to date si ca marche c bien ...
+                        # si non ... on verra pr le plot
                         """
                             DROP TABLE IF EXISTS les_mois;
                             CREATE TABLE les_mois(
                             datevalidation CHAR(20)
                             );
                             INSERT INTO les_mois
-                            values('"""+ date_str[0] +"""');
+                            values('"""+ date_nbr +"""');
                             drop table if exists somme_mois;
                             create table somme_mois (
                             datevalidation date,
@@ -303,7 +335,6 @@ def tableinspectoryear():
                             drop table if exists sommebuffer;
                             drop table if exists sommesortie;
                             drop table if exists sommeentree;
-                            DROP TABLE IF EXISTS les_mois;
                             """
                     )
 
@@ -315,17 +346,60 @@ def tableinspectoryear():
                         SUM(somme_mois.sommenbvalidationsentree), SUM(somme_mois.sommenbvalidationssortie)
                         FROM les_mois, somme_mois
                         GROUP BY les_mois.datevalidation;
+                        CREATE TABLE test (LIKE somme_annee);
+                        INSERT INTO test
+                        SELECT * FROM somme_annee ORDER BY datevalidation;
+                        DROP TABLE somme_annee;
+                        ALTER TABLE test RENAME TO somme_annee;
+                        DROP TABLE IF EXISTS les_mois;
                         """
                     )
-                x = array([0, 1, 2, 0, 0])
-                y = array([0, 0, 2, 1, 0])
-                plot(x, y)
-                xlim(-5, 1)
-                ylim(-1, 7)
-                os.remove('static/images/test1.png')
-                savefig('static/images/test1.png')
+                cur2.execute(
+                    """
+                    SELECT * FROM somme_annee;
+                    """
+                )
+                result = cur2.fetchall()
+                tab_res = []
+                for t in result:
+                    tab_res.append([str(t[0]), t[1], t[2], t[3], t[4], t[5], t[6]])
+
+
+                cur1.execute(
+                    """
+                    SELECT datevalidation FROM somme_annee;
+                    """
+                )
+                tab_d_float = []
+                xdate = cur1.fetchall()
+                for x in xdate:
+                    tab_d = x[0].split("-")
+                    m_str = tab_d[1]
+                    m_float = float(m_str)
+                    tab_d_float.append(m_float)
+
+                cur2.execute(
+                    """
+                    SELECT sommenb1eremonteeentree FROM somme_annee;
+                    """
+                )
+
+                yvalidation = cur2.fetchall()
+                plot(tab_d_float, yvalidation, label="premiere montee")
+                title("Graph de la premiere montee")
+                legend()
+                ylim(0,4000000)
+                xlabel("Mois")
+                ylabel("Valeur 1ere montee")
                 conn.commit()
-                return render_template("tableinspectoryear_result.html", active="tableinspectoryear")
+                choix = request.form['choice']
+                if (int(choix) == 0):
+                    return render_template("tableinspectoryear_result.html", active="tableinspectoryear", res=tab_res)
+                else :
+                    savefig('static/images/graphic.png')
+                    show()
+                    return render_template("tableinspectoryear_result_graph.html", active="tableinspectoryear", res=tab_res)
+
             else:
                 #la date n'est pas bonne
                 return render_template("tableinspectoryear_error.html", active="tableinspectoryear")
