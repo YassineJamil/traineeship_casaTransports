@@ -251,6 +251,7 @@ def tableinspectoryear():
             conn = connect()
             cur1 = conn.cursor()
             cur2 = conn.cursor()
+            cur3 = conn.cursor()
             eraseFile('static/images')
             choix = request.form['choice']
             if (int(choix) == 0 or int(choix) == 1 ):
@@ -258,7 +259,7 @@ def tableinspectoryear():
                 cur1.execute(
                     """SELECT table_name
                     FROM INFORMATION_SCHEMA.TABLES
-                    WHERE table_name LIKE '%""" + str(annee_nbr) + """';
+                    WHERE table_name LIKE '%\_""" + str(annee_nbr) + """';
                     """
                 )
                 check = cur1.fetchall()
@@ -362,6 +363,7 @@ def tableinspectoryear():
                             DROP TABLE somme_annee;
                             ALTER TABLE test RENAME TO somme_annee;
                             DROP TABLE IF EXISTS les_mois;
+                            DROP TABLE IF EXISTS somme_mois;
                             """
                         )
 
@@ -395,8 +397,8 @@ def tableinspectoryear():
                         for x in xdate:
                             tab_d = x[0].split("-")
                             m_str = tab_d[1]
-                            m_float = float(m_str)
-                            tab_d_float.append(m_float)
+                            m_int = int(m_str)
+                            tab_d_float.append(m_int)
 
                         cur2.execute(
                             """
@@ -405,26 +407,198 @@ def tableinspectoryear():
                         )
                         figure()
                         yvalidation = cur2.fetchall()
-                        plot(tab_d_float, yvalidation, label="premiere montee")
-                        title("Graph de la premiere montee")
+                        plot(tab_d_float, yvalidation, label=str(annee_nbr))
                         legend()
-                        ylim(0, 4000000)
+                        title("Graph de la premiere montee")
                         xlabel("Mois")
                         ylabel("Valeur 1ere montee")
                         numero = random()
                         path = 'static/images/graphic'+str(numero)+'.png'
+                        grid()
                         savefig(path)
                         tpath = path.split('/', 1)
                         path1 = tpath[1]
+                        close()
                         return render_template("tableinspectoryear_result_graph.html", active="tableinspectoryear",res = path1)
-
                 else:
                     #la date n'est pas bonne
                     return render_template("tableinspectoryear_error.html", active="tableinspectoryear")
 
             else :
-                print 'graph global'
+                tab_res = []
+                lesDates = []
+                cur1.execute(
+                    """
+                        SELECT table_name
+                        FROM INFORMATION_SCHEMA.TABLES
+                        WHERE table_name LIKE '%\_20%';
+                    """
+                )
+                liste = cur1.fetchall()
+                for l in liste:
+                    tab_list = l[0].split('_')
+                    year_str = tab_list[1]
+                    year_nbr = int(year_str)
+                    if year_nbr not in lesDates:
+                        lesDates.append(year_nbr)
+                i = 0
+                for annee_nbr in lesDates:
+                    cur1.execute(
+                        """SELECT table_name
+                        FROM INFORMATION_SCHEMA.TABLES
+                        WHERE table_name LIKE '%\_""" + str(annee_nbr) + """';
+                        """
+                    )
+                    check = cur1.fetchall()
+                    if (check):
+                        cur1.execute(
+                            """
+                                drop table if exists somme_annee"""+str(annee_nbr)+""";
+                                create table somme_annee"""+str(annee_nbr)+""" (
+                                datevalidation CHAR(20),
+                                sommenb1eremonteeentree int,
+                                sommenb1eremonteesortie int,
+                                sommenbcorrespentree int,
+                                sommenbcorrespsortie int,
+                                sommenbvalidationsentree int,
+                                sommenbvalidationssortie int );
+                            """
+                        )
+                        for date_str in check:
+                            tab_date = str(date_str[0]).split("_")
+                            month_str = tab_date[0]
+                            month_nbr = monthstr_To_monthnbr(month_str)
+                            date_nbr = month_nbr
+                            cur1.execute(
+                                """
+                                    DROP TABLE IF EXISTS les_mois"""+str(annee_nbr)+""";
+                                    CREATE TABLE les_mois"""+str(annee_nbr)+"""(
+                                    datevalidation CHAR(20)
+                                    );
+                                    INSERT INTO les_mois"""+str(annee_nbr)+"""
+                                    values('""" + date_nbr + """');
+                                    drop table if exists somme_mois"""+str(annee_nbr)+""";
+                                    create table somme_mois"""+str(annee_nbr)+""" (
+                                    datevalidation date,
+                                    sommenb1eremonteeentree int,
+                                    sommenb1eremonteesortie int,
+                                    sommenbcorrespentree int,
+                                    sommenbcorrespsortie int,
+                                    sommenbvalidationsentree int,
+                                    sommenbvalidationssortie int );
 
+                                    drop table if exists sommeentree;
+                                    create table sommeentree (
+                                    datevalidation date,
+                                    sommenb1eremonteeentree int,
+                                    sommenbcorrespentree int,
+                                    sommenbvalidationsentree int);
+
+                                    insert into sommeentree
+                                    SELECT datevalidation ,SUM(nb1eremontees),SUM(nbcorresp),SUM(nbvalidations)
+                                    FROM """ + str(date_str[0]) + """
+                                    where directionvalidation = 'entree'
+                                    GROUP BY datevalidation;
+
+                                    drop table if exists sommesortie;
+                                    create table sommesortie (
+                                    datevalidation date,
+                                    sommenb1eremonteesortie int,
+                                    sommenbcorrespsortie int,
+                                    sommenbvalidationssortie int);
+                                    insert into sommesortie
+                                    SELECT datevalidation ,SUM(nb1eremontees),SUM(nbcorresp),SUM(nbvalidations)
+                                    FROM """ + str(date_str[0]) + """
+                                    where directionvalidation = 'sortie'
+                                    GROUP BY datevalidation;
+
+                                    insert into somme_mois"""+str(annee_nbr)+"""
+                                    SELECT sommeentree.datevalidation, sommenb1eremonteeentree,  sommenb1eremonteesortie, sommenbcorrespentree, sommenbcorrespsortie, sommenbvalidationsentree, sommenbvalidationssortie
+                                        FROM sommeentree, sommesortie
+                                        WHERE sommeentree.datevalidation = sommesortie.datevalidation;
+
+                                    -- ordonnement de somme create table sommebuffer (like somme);
+                                    drop table if exists sommebuffer;
+                                    create table sommebuffer (like somme_mois"""+str(annee_nbr)+""");
+                                    insert into sommebuffer
+                                    select * from somme_mois"""+str(annee_nbr)+""" order by datevalidation;
+
+                                    delete from somme_mois"""+str(annee_nbr)+""";
+
+                                    insert into somme_mois"""+str(annee_nbr)+"""
+                                    select * from sommebuffer;
+                                    drop table if exists sommebuffer;
+                                    drop table if exists sommesortie;
+                                    drop table if exists sommeentree;
+                                """
+                            )
+                            cur2.execute(
+                                """
+                                INSERT INTO somme_annee"""+str(annee_nbr)+"""
+                                SELECT les_mois"""+str(annee_nbr)+""".datevalidation,SUM(somme_mois"""+str(annee_nbr)+""".sommenb1eremonteeentree),SUM(somme_mois"""+str(annee_nbr)+""".sommenb1eremonteesortie),
+                                SUM(somme_mois"""+str(annee_nbr)+""".sommenbcorrespentree), SUM(somme_mois"""+str(annee_nbr)+""".sommenbcorrespsortie),
+                                SUM(somme_mois"""+str(annee_nbr)+""".sommenbvalidationsentree), SUM(somme_mois"""+str(annee_nbr)+""".sommenbvalidationssortie)
+                                FROM les_mois"""+str(annee_nbr)+""", somme_mois"""+str(annee_nbr)+"""
+                                GROUP BY les_mois"""+str(annee_nbr)+""".datevalidation;
+                                CREATE TABLE test (LIKE somme_annee"""+str(annee_nbr)+""");
+                                INSERT INTO test
+                                SELECT * FROM somme_annee"""+str(annee_nbr)+""" ORDER BY datevalidation;
+                                DROP TABLE somme_annee"""+str(annee_nbr)+""";
+                                ALTER TABLE test RENAME TO somme_annee"""+str(annee_nbr)+""";
+                                DROP TABLE IF EXISTS les_mois"""+str(annee_nbr)+""";
+                                DROP TABLE if EXiSTS somme_mois"""+str(annee_nbr)+""";
+                                """
+                            )
+                choix = request.form['choice']
+                if (int(choix) == 3):
+                    for tdate in lesDates:
+                        cur3.execute(
+                            """
+                            SELECT * FROM somme_annee"""+str(tdate)+""";
+                            """
+                        )
+                        result = cur3.fetchall()
+                        print result
+                        print '------------------'
+                        tab_res.append([str(tdate)])
+                        for t in result:
+                            tab_res.append([str(t[0]), t[1], t[2], t[3], t[4], t[5], t[6]])
+                            print t
+                    return render_template("tableinspectoryear_result.html", active="tableinspectoryear", res=tab_res)
+                else:
+                    # les types sont : - -- : -.
+                    # couleur b g r c m y b w
+                    list_option = ["y--o", "g--o", "m--o", "c--o", "b--o", "r--o", "y-o", "g-o", "m-o", "c-o", "b-o", "r-o"]
+                    for tdate in lesDates:
+                        option = choice(list_option)
+                        cur1.execute(
+                            """
+                            SELECT datevalidation FROM somme_annee"""+str(tdate)+""";
+                            """
+                        )
+                        tab_d_int = []
+                        xdate = cur1.fetchall()
+                        for x in xdate:
+
+                            m_str = x[0]
+                            m_float = int(m_str)
+                            tab_d_int.append(m_float)
+
+                        cur2.execute(
+                            """
+                            SELECT sommenb1eremonteeentree FROM somme_annee"""+str(tdate)+""";
+                            """
+                        )
+                        yvalidation = cur2.fetchall()
+
+                        plot(tab_d_int, yvalidation, option, label= str(tdate))
+                        legend()
+                        title("Graph de la premiere montee")
+                        xlabel("Mois")
+                        ylabel("Valeur 1ere montee")
+                    grid()
+                    show()
+                    close()
             conn.commit()
         return render_template("tableinspectoryear.html", active="tableinspectoryear")
     else:

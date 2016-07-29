@@ -4,12 +4,20 @@
         <form class="form-signin center" action="{{ url_for('tableinspectoryear') }}" method=post>
             <h2 class="form-signin-heading"> Choisissez le mode voulu:  </h2>
             <div class="font-large upspace">
-                <input type="radio" name=choice value="0" onClick="show()" /> Tableau
-                <input type="radio" name=choice value="1" onClick="show()" /> Graph annuel
-                <input type="radio" name=choice value="2" onClick="hide()" checked/> Graph général
+                <input type="radio" name=choice value="3"  onClick="hide1()" checked/> Tableau général
+                <input type="radio" name=choice value="2"  onClick="show1()" /> Graph général <br/>
+                <input type="radio" name=choice value="0"  onClick="show()" /> Tableau annuel
+                <input type="radio" name=choice value="1"  onClick="show()" /> Graph annuel
             </div>
             <label for="annee" class="sr-only">Annee souhaiter</label>
             <input type="text" id="annee" name="annee" class="form-control" placeholder="Entrez l'année" style="display: none">
+
+
+         <h2 class="font-large upspace" id="stop" style="display: none">
+             <img  src="http://www.gif-maniac.com/gifs/53/53440.gif" alt="Attention" /><br/>
+             Il faut obligatoirement fermer la fenêtre du graph après usage pour le bon fonctionnement de l'application <br/>
+             Merci de votre coopération!
+         </h2>
 
             <button class="btn btn-lg btn-connect btn-block" type="submit">GO</button>
         </form>
@@ -18,10 +26,19 @@
         var show = function () {
             $("#annee").show()
                 .prop('required',true);
+            $("#stop").hide();
         }
-        var hide = function () {
+
+        var show1 = function () {
+            $("#stop").show();
             $("#annee").hide()
                 .prop('required',false);
+        }
+
+        var hide1 = function () {
+            $("#annee").hide()
+                .prop('required',false);
+            $("#stop").hide();
         }
     </script>
 {% endblock %}

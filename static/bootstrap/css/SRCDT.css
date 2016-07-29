@@ -137,11 +137,11 @@ fieldset[disabled] .btn-connect.focus {
 }
 
 .font-large {
-    font-size: large;
+    font-size: medium;
 }
 
 .upspace {
-    margin: 0.4em 0em
+    margin: 1em 1em
 }
 
 .profile_picture {
