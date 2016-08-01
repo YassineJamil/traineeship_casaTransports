@@ -1,0 +1,43 @@
+{% extends "container.html" %}
+{% block body %}
+<div class="table-responsive">
+     <table class = table-result-year >
+        <h2 class ="h2"> Donnèes de validations annuelle </h2> <br/>
+
+        <thead> <!-- En-tête du tableau -->
+            <tr>
+                <th > Date <br/>Validation </th>
+                <th > Validation Première Montée <br/>Entrée </th>
+                <th > Validation Première Montée<br/> Sortie </th>
+                <th > Correspondance <br/>Entrée </th>
+                <th > Correspondance <br/>Sortie </th>
+                <th > Nombre Validation <br/>Entrée </th>
+                <th> Nombre Validation <br/> Sortie </th>
+            </tr>
+        </thead>
+          <!--
+        <tfoot>  Pied de tableau
+            <tr>
+                <th>Nom</th>
+                <th>Âge</th>
+                <th>Pays</th>
+            </tr>
+        </tfoot>
+          -->
+
+        <tbody> <!-- Corps du tableau -->
+            {% for t in res %}
+            <tr>
+                <td>{{ t[0] }}</td>
+                <td>{{ t[1] }}</td>
+                <td>{{ t[2] }}</td>
+                <td>{{ t[3] }}</td>
+                <td>{{ t[4] }}</td>
+                <td>{{ t[5] }}</td>
+                <td>{{ t[6] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+     </table>
+     </div>
+{% endblock %}

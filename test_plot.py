@@ -1,3 +1,4 @@
+'''
 # deux maniere de faire des graph ..
 # la premiere pylab et la deuxime plus traditionnel
 
@@ -287,7 +288,7 @@ from pylab import *
 x = array([0, 1, 1, 0, 0])
 y = array([0, 0, 1, 1, 0])
 plot(x, y)
-plt.axis("equal")
+axis("equal")
 
 show()
 
@@ -467,14 +468,24 @@ if 1:
     fig.savefig('ribbon_box.png')
     plt.show()
 
+#sauvegarder le graph
 
+from pylab import *
 
+x = array([0, 1, 1, 0, 0])
+y = array([0, 0, 1, 1, 0])
+plot(x, y)
+xlim(-5, 2)
+ylim(-1, 2)
 
-
-
-
-
-
-
-
-
+savefig('test.png')
+'''
+def split_int(number, separator=' ', count=3):
+    return separator.join(
+        [str(number)[::-1][i:i+count] for i in range(0, len(str(number)), count)]
+    )[::-1]
+a = '200000000000'
+b = a.split()
+print b
+c = split_int(a)
+print c

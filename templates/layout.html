@@ -5,12 +5,19 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap/css/SRCDT.css') }}">
 
 <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.js') }}"> </script>
-<script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"> </script>
+<script src="{{ url_for('static', filename='bootstrap/jquery-2.2.4.min.js') }}"> </script>
 
 
 <head>
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title> CasaTransports </title>
+    <meta name="author" content="Yassine JAMIL" />
+    <meta name="keywords" content="CasaTransport, CasaTransports, bielletique, SDC, SDD" />
+    <meta name="description" content="Solution Reporting de Données CasaTransports" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0" />
+
 </head>
 
 
@@ -26,15 +33,22 @@
                 <ul class="nav navbar-nav navbar-left">
                     <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
 
-                {% if active == "tableinspector" %}
-                    <li id="tableinspector" class="active">
+                {% if active == "tableinspectormonth" %}
+                    <li id="tableinspectormonth" class="active">
                 {% else %}
-                    <li id="tableinspector" class="">
+                    <li id="tableinspectormonth" class="">
                 {% endif %}
-                        <a class="navbar-brand" href="{{ url_for('tableinspector') }}"> inspector </a>
+                        <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDC rapport mensuel </a>
+                    </li>
+
+                {% if active == "tableinspectoryear" %}
+                    <li id="tableinspectoryear" class="active">
+                {% else %}
+                    <li id="tableinspectoryear" class="">
+                {% endif %}
+                        <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> SDC rapport annuel </a>
                     </li>
                 </ul>
-
 
             {% endif %}
             <ul class="nav navbar-nav navbar-right">

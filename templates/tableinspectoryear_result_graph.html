@@ -1,0 +1,8 @@
+{% extends "container.html" %}
+{% block body %}
+
+<div class="table-responsive">
+    <h2> Graphique annuelle </h2>
+    <img border="2" src="{{ url_for('static', filename=res) }}" width="800" height="600"/>
+</div>
+{% endblock %}

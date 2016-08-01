@@ -128,6 +128,76 @@ fieldset[disabled] .btn-connect.focus {
     background-color: #A7DBD8;
 }
 
+.table-result-year {
+    text-align: center;
+    border: 2px solid #5bc;
+}
+
+.table-result-year > thead > tr > th,
+.table-result-year > tbody > tr > th,
+.table-result-year > tfoot > tr > th,
+.table-result-year > thead > tr > td,
+.table-result-year> tbody > tr > td,
+.table-result-year > tfoot > tr > td {
+  border: 2px solid #5bc;
+}
+.table-result-year > thead > tr > th,
+.table-result-year > thead > tr > td {
+    border-bottom-width: 2px;
+}
+
+@media screen and (max-width: 767px) {
+  .table-responsive {
+    width: 100%;
+    margin-bottom: 15px;
+    overflow-y: hidden;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    border: 1px solid #ddd;
+  }
+  .table-responsive > .table {
+    margin-bottom: 0;
+  }
+  .table-responsive > .table > thead > tr > th,
+  .table-responsive > .table > tbody > tr > th,
+  .table-responsive > .table > tfoot > tr > th,
+  .table-responsive > .table > thead > tr > td,
+  .table-responsive > .table > tbody > tr > td,
+  .table-responsive > .table > tfoot > tr > td {
+    white-space: nowrap;
+  }
+  .table-responsive > .table-result-year {
+    border: 0;
+  }
+  .table-responsive > .table-result-year > thead > tr > th:first-child,
+  .table-responsive > .table-result-year > tbody > tr > th:first-child,
+  .table-responsive > .table-result-year > tfoot > tr > th:first-child,
+  .table-responsive > .table-result-year > thead > tr > td:first-child,
+  .table-responsive > .table-result-year > tbody > tr > td:first-child,
+  .table-responsive > .table-result-year > tfoot > tr > td:first-child {
+    border-left: 0;
+  }
+  .table-responsive > .table-result-year > thead > tr > th:last-child,
+  .table-responsive > .table-result-year > tbody > tr > th:last-child,
+  .table-responsive > .table-result-year > tfoot > tr > th:last-child,
+  .table-responsive > .table-result-year > thead > tr > td:last-child,
+  .table-responsive > .table-result-year > tbody > tr > td:last-child,
+  .table-responsive > .table-result-year > tfoot > tr > td:last-child {
+    border-right: 0;
+  }
+  .table-responsive > .table-result-year > tbody > tr:last-child > th,
+  .table-responsive > .table-result-year > tfoot > tr:last-child > th,
+  .table-responsive > .table-result-year > tbody > tr:last-child > td,
+  .table-responsive > .table-result-year > tfoot > tr:last-child > td {
+    border-bottom: 0;
+  }
+}
+
+.table-result-year th,
+.table-result-year td {
+    border: 2px solid #5bc !important;
+    text-align: center;
+}
+
 .center {
     text-align: center;
 }
@@ -137,17 +207,18 @@ fieldset[disabled] .btn-connect.focus {
 }
 
 .font-large {
-    font-size: large;
+    font-size: medium;
 }
 
 .upspace {
-    margin: 0.4em 0em
+    margin: 1em 1em
 }
 
 .profile_picture {
     width: 250px;
     height: 250px;
 }
+
 
 #title {
     color: #FFFFFF;
