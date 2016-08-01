@@ -480,6 +480,12 @@ ylim(-1, 2)
 
 savefig('test.png')
 '''
-
-
-
+def split_int(number, separator=' ', count=3):
+    return separator.join(
+        [str(number)[::-1][i:i+count] for i in range(0, len(str(number)), count)]
+    )[::-1]
+a = '200000000000'
+b = a.split()
+print b
+c = split_int(a)
+print c

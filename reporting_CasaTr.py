@@ -78,6 +78,11 @@ def monthnbr_To_monthstr(monthnbr):
         if case.default:
             return "decembre"
 
+def split_int(number, separator=' ', count=3):
+    return separator.join(
+        [str(number)[::-1][i:i+count] for i in range(0, len(str(number)), count)]
+    )[::-1]
+
 def eraseFile(repertoire):
     files=os.listdir(repertoire)
     for filename in files:
@@ -232,7 +237,8 @@ def tableinspectormonth():
                 result = cur2.fetchall()
                 tab_res = []
                 for t in result:
-                    tab_res.append([str(t[0]),t[1],t[2],t[3],t[4],t[5],t[6]])
+                    tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2]), split_int(t[3]), split_int(t[4]),
+                                    split_int(t[5]), split_int(t[6])])
 
                 conn.commit()
                 return render_template("tableinspectormonth_result.html", active="tableinspectormonth", res=tab_res)
@@ -381,7 +387,8 @@ def tableinspectoryear():
                         result = cur2.fetchall()
                         tab_res = []
                         for t in result:
-                            tab_res.append([str(t[0]), t[1], t[2], t[3], t[4], t[5], t[6]])
+                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2]), split_int(t[3]), split_int(t[4]),
+                                            split_int(t[5]), split_int(t[6])])
                         return render_template("tableinspectoryear_result.html", active="tableinspectoryear", res=tab_res)
                     else :
 
@@ -407,11 +414,12 @@ def tableinspectoryear():
                         )
                         figure()
                         yvalidation = cur2.fetchall()
-                        plot(tab_d_float, yvalidation, label=str(annee_nbr))
+                        xticks(np.linspace(1, 12, 12, endpoint=True))
+                        plot(tab_d_float, yvalidation, "c--o", label=str(annee_nbr))
                         legend()
-                        title("Graph de la premiere montee")
+                        title("Evolution de validation mensuelle")
                         xlabel("Mois")
-                        ylabel("Valeur 1ere montee")
+                        ylabel("Validation")
                         numero = random()
                         path = 'static/images/graphic'+str(numero)+'.png'
                         grid()
@@ -562,7 +570,8 @@ def tableinspectoryear():
                         print '------------------'
                         tab_res.append([str(tdate)])
                         for t in result:
-                            tab_res.append([str(t[0]), t[1], t[2], t[3], t[4], t[5], t[6]])
+                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2]), split_int(t[3]), split_int(t[4]),
+                                            split_int(t[5]), split_int(t[6])])
                             print t
                     return render_template("tableinspectoryear_result.html", active="tableinspectoryear", res=tab_res)
                 else:
@@ -571,6 +580,7 @@ def tableinspectoryear():
                     list_option = ["y--o", "g--o", "m--o", "c--o", "b--o", "r--o", "y-o", "g-o", "m-o", "c-o", "b-o", "r-o"]
                     for tdate in lesDates:
                         option = choice(list_option)
+                        list_option.remove(option)
                         cur1.execute(
                             """
                             SELECT datevalidation FROM somme_annee"""+str(tdate)+""";
@@ -579,7 +589,6 @@ def tableinspectoryear():
                         tab_d_int = []
                         xdate = cur1.fetchall()
                         for x in xdate:
-
                             m_str = x[0]
                             m_float = int(m_str)
                             tab_d_int.append(m_float)
@@ -590,12 +599,12 @@ def tableinspectoryear():
                             """
                         )
                         yvalidation = cur2.fetchall()
-
                         plot(tab_d_int, yvalidation, option, label= str(tdate))
                         legend()
-                        title("Graph de la premiere montee")
+                        title("Synthese validation annuelle")
+                        xticks(np.linspace(1, 12,12, endpoint=True))
                         xlabel("Mois")
-                        ylabel("Valeur 1ere montee")
+                        ylabel("Validation")
                     grid()
                     show()
                     close()

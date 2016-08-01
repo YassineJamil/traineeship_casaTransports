@@ -4,10 +4,10 @@
         <form class="form-signin center" action="{{ url_for('tableinspectoryear') }}" method=post>
             <h2 class="form-signin-heading"> Choisissez le mode voulu:  </h2>
             <div class="font-large upspace">
-                <input type="radio" name=choice value="3"  onClick="hide1()" checked/> Tableau général
-                <input type="radio" name=choice value="2"  onClick="show1()" /> Graph général <br/>
-                <input type="radio" name=choice value="0"  onClick="show()" /> Tableau annuel
-                <input type="radio" name=choice value="1"  onClick="show()" /> Graph annuel
+                <input type="radio" name=choice value="3"  onClick="hide1()" checked/> Synthèse validations
+                <input type="radio" name=choice value="2"  onClick="show1()" /> Graphique de synthèse <br/>
+                <input type="radio" name=choice value="0"  onClick="show()" /> Validations annuelle
+                <input type="radio" name=choice value="1"  onClick="show()" /> Graphique annuel
             </div>
             <label for="annee" class="sr-only">Annee souhaiter</label>
             <input type="text" id="annee" name="annee" class="form-control" placeholder="Entrez l'année" style="display: none">
