@@ -30,25 +30,47 @@
                     <a class="navbar-brand" href="{{ url_for('home') }}">SRDCT</a>
                 </ul>
             {% else %}
-                <ul class="nav navbar-nav navbar-left">
-                    <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
+                {% if session.db_name == "SDC" %}
+                    <ul class="nav navbar-nav navbar-left">
+                        <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
 
-                {% if active == "tableinspectormonth" %}
-                    <li id="tableinspectormonth" class="active">
-                {% else %}
-                    <li id="tableinspectormonth" class="">
-                {% endif %}
-                        <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDC rapport mensuel </a>
-                    </li>
+                    {% if active == "tableinspectormonth" %}
+                        <li id="tableinspectormonth" class="active">
+                    {% else %}
+                        <li id="tableinspectormonth" class="">
+                    {% endif %}
+                            <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDC rapport mensuel </a>
+                        </li>
 
-                {% if active == "tableinspectoryear" %}
-                    <li id="tableinspectoryear" class="active">
+                    {% if active == "tableinspectoryear" %}
+                        <li id="tableinspectoryear" class="active">
+                    {% else %}
+                        <li id="tableinspectoryear" class="">
+                    {% endif %}
+                            <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> SDC rapport annuel </a>
+                        </li>
+                    </ul>
                 {% else %}
-                    <li id="tableinspectoryear" class="">
+                    <ul class="nav navbar-nav navbar-left">
+                        <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
+
+                    {% if active == "tableinspectormonth" %}
+                        <li id="tableinspectormonth" class="active">
+                    {% else %}
+                        <li id="tableinspectormonth" class="">
+                    {% endif %}
+                            <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDD1 </a>
+                        </li>
+
+                    {% if active == "tableinspectoryear" %}
+                        <li id="tableinspectoryear" class="active">
+                    {% else %}
+                        <li id="tableinspectoryear" class="">
+                    {% endif %}
+                            <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> SDD2 </a>
+                        </li>
+                    </ul>
                 {% endif %}
-                        <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> SDC rapport annuel </a>
-                    </li>
-                </ul>
 
             {% endif %}
             <ul class="nav navbar-nav navbar-right">

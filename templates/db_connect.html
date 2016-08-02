@@ -14,7 +14,10 @@
             <input type="text" id="host" name="host" class="form-control" placeholder="Host">
 
             <label for="db_name" class="sr-only">DataBase name</label>
-            <input type="text" id="db_name" name="db_name" class="form-control" placeholder="DB Name" required><br>
+            <select id="db_name" name="db_name" class="form-control" size="1">
+                <option selected> SDC </option>
+                <option> SDD </option>
+            </select>
 
             <button class="btn btn-lg btn-connect btn-block" type="submit">Connect</button>
         </form>

@@ -141,8 +141,6 @@ def db_action():
                     return redirect(url_for("tableinspectormonth"))
                 if case("tableinspectoryear"):
                     return redirect(url_for("tableinspectoryear"))
-                if case("test"):
-                    return redirect(url_for("test"))
                 if case.default:
                     return redirect(url_for('error'))
         else:
@@ -372,10 +370,6 @@ def tableinspectoryear():
                             DROP TABLE IF EXISTS somme_mois;
                             """
                         )
-
-
-
-
 
                     choix = request.form['choice']
                     if (int(choix) == 0):
