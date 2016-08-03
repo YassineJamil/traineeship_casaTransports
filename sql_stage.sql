@@ -187,4 +187,19 @@ UPDATE janvier_2015
 SET directionvalidation = 'sortie'
 WHERE directionvalidation = '2';
 
+-- SDD script complet de creation de table et de son remplissage, ne pas oublier de bien mentionner la date
+
+CREATE TABLE juin_2016
+(
+  dthroperation timestamp without time zone PRIMARY KEY ,
+  tranchehoraire integer,
+  tranchequartheure character(6),
+  nb1eremontees integer,
+  numlieu integer,
+  libellearret character(20)
+);
+
+COPY juin_2016
+FROM 'C:/Program Files/PostgreSQL/9.5/CSV/SDD/SDD_mois_0716_clean.csv'
+WITH DELIMITER ',';
 
