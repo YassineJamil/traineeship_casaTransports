@@ -137,10 +137,12 @@ def db_action():
     if session.get('connexion'):
         if request.method == 'POST':
             with Switch(request.form['action']) as case:
-                if case("tableinspectormonth"):
-                    return redirect(url_for("tableinspectormonth"))
-                if case("tableinspectoryear"):
-                    return redirect(url_for("tableinspectoryear"))
+                if case('tableinspectormonth'):
+                    return redirect(url_for('tableinspectormonth'))
+                if case('tableinspectoryear'):
+                    return redirect(url_for('tableinspectoryear'))
+                if case('ssdmonth'):
+                    return redirect(url_for('ssdmonth'))
                 if case.default:
                     return redirect(url_for('error'))
         else:
@@ -148,6 +150,126 @@ def db_action():
     else:
         return redirect(url_for('error'))
 
+@app.route('/ssdmonth/', methods=['GET', 'POST'])
+def ssdmonth():
+    if session.get('connexion'):
+        if request.method == 'POST':
+            conn = connect()
+            cur1 = conn.cursor()
+            cur2 = conn.cursor()
+            cur3 = conn.cursor()
+            choix = request.form['choice']
+            if( choix == '4' or choix == '5'):
+                date = request.form['jour']
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                j = tab_date[2]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str+'_'+y + """';
+                    """
+                )
+                check = cur1.fetchall()
+                if (check) :
+                    if (choix == '4'):
+                        cur1.execute(
+                            """
+                                SELECT * FROM """+ m_str+'_'+y+"""
+                                WHERE jourvalidation = '"""+date+"""' order by tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        tab_res = []
+                        for t in result:
+                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2])])
+                        return render_template('ssdmonth_result_jour.html', active='ssdmonth', res=tab_res)
+                    else:
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                            """
+                        )
+                        x = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT nb1eremontees FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                            """
+                        )
+                        z = cur1.fetchall()
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique journalier')
+                        plot(x, z, "b-o", label=str(date))
+                        legend()
+                        grid()
+                        show()
+                        close()
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonth_error.html', active='ssdmonth')
+            if( choix == '2' or choix == '3'):
+                date = request.form['mois']
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str + '_' + y + """';
+                        """
+                )
+                check = cur1.fetchall()
+                if (check):
+                    if (choix == '2'):
+                        cur1.execute(
+                            """
+                                SELECT * FROM """ + m_str + '_' + y + """
+                                    WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                                """
+                        )
+                        result = cur1.fetchall()
+                        tab_res = []
+                        for t in result:
+                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2])])
+                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res=tab_res)
+                    '''else:
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire FROM """ + m_str + '_' + y + """
+                                    WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                                """
+                        )
+                        x = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT nb1eremontees FROM """ + m_str + '_' + y + """
+                                    WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                                """
+                        )
+                        y = cur1.fetchall()
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique journalier')
+                        plot(x, y, "b-o", label=str(date))
+                        legend()
+                        grid()
+                        show()
+                        close()'''
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonth_error.html', active='ssdmonth')
+
+        return render_template('ssdmonth.html', active='ssdmonth')
+    else:
+        return redirect(url_for('error'))
 
 @app.route('/tableinspectormonth/', methods=['GET', 'POST'])
 def tableinspectormonth():

@@ -54,12 +54,12 @@
                     <ul class="nav navbar-nav navbar-left">
                         <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
 
-                    {% if active == "tableinspectormonth" %}
-                        <li id="tableinspectormonth" class="active">
+                    {% if active == "ssdmonth" %}
+                        <li id="ssdmonth" class="active">
                     {% else %}
-                        <li id="tableinspectormonth" class="">
+                        <li id="ssdmonth" class="">
                     {% endif %}
-                            <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDD1 </a>
+                            <a class="navbar-brand" href="{{ url_for('ssdmonth') }}"> SDD1 </a>
                         </li>
 
                     {% if active == "tableinspectoryear" %}

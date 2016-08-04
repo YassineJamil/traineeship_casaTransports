@@ -1,0 +1,69 @@
+{% extends "container.html" %}
+{% block body %}
+    <div class="container" id="db_connect_form">
+        <form class="form-signin center" action="{{ url_for('ssdmonth') }}" method=post>
+
+            <h2 class="form-signin-heading"> Choisissez le mode voulu:  </h2>
+
+            <div class="font-large upspace">
+                <input type="radio" name=choice value="0"  onClick="hide()" required/> Tableau mensuel
+                <input type="radio" name=choice value="1"  onClick="show1()" /> Graphique mensuel <br/>
+                <input type="radio" name=choice value="2"  onClick="hide()" /> Tableau moyenne
+                <input type="radio" name=choice value="3"  onClick="show1()" /> Graphique moyenne <br/>
+                <input type="radio" name=choice value="4"  onClick="show()" /> Tableau journalier
+                <input type="radio" name=choice value="5"  onClick="show2()" /> Graphique journalier
+            </div>
+
+            <label for="jour" class="sr-only">Le jour souhaiter</label>
+            <input type="date" id="jour" name="jour" class="form-control" style="display: none"/>
+
+            <label for="mois" class="sr-only">Le mois souhaiter</label>
+            <input type="month" id="mois" name="mois" class="form-control" style="display: none"/>
+
+            <h2 class="font-large upspace" id="stop" style="display: none">
+                <img  src="http://www.gif-maniac.com/gifs/53/53440.gif" alt="Attention" /><br/>
+                Il faut obligatoirement fermer la fenêtre du graph après usage pour le bon fonctionnement de l'application <br/>
+                Merci de votre coopération!
+            </h2>
+
+            <button class="btn btn-lg btn-connect btn-block" type="submit">GO</button>
+
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        var show = function () {
+            $("#jour").show()
+                .prop('required',true);
+            $("#mois").hide()
+                .prop('required',false);
+            $("#stop").hide();
+        }
+
+        var show1 = function () {
+            $("#stop").show();
+            $("#mois").show()
+                .prop('required',true);
+            $("#jour").hide()
+                .prop('required',false);
+        }
+
+        var hide = function () {
+            $("#jour").hide()
+                .prop('required',false);
+            $("#stop").hide();
+            $("#mois").show()
+                .prop('required', true);
+
+        }
+
+        var show2 = function () {
+            $("#jour").show()
+                .prop('required', true);
+            $("#mois").hide()
+                .prop('required', false);
+            $("#stop").show();
+        }
+    </script>
+
+{% endblock %}
