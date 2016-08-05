@@ -1,0 +1,148 @@
+{% extends "container.html" %}
+{% block body %}
+    <div class="container" id="db_connect_form">
+        <form class="form-signin center" action="{{ url_for('ssdmonthstation') }}" method=post>
+
+            <h2 class="form-signin-heading"> Choisissez le mode voulu:  </h2>
+
+            <div class="font-large upspace">
+                <input type="radio" name=choice value="0"  onClick="show()" /> Tableau station
+                <input type="radio" name=choice value="1"  onClick="show2()" /> Graphique station<br/>
+                <input type="radio" name=choice value="2"  onClick="show3()" /> Tableau branche
+                <input type="radio" name=choice value="3"  onClick="show1()" /> Graphique branche
+            </div>
+
+            <label for="jour" class="sr-only">Le jour souhaiter</label>
+            <input type="date" id="jour" name="jour" class="form-control" required style="display: none"/>
+
+            <label for="branche" class="sr-only">La branche souhaiter</label>
+            <select id="branche" name="branche" class="form-control" size="1" style="display: none">
+                <option selected> Branche tronc commun </option>
+                <option > Branche ain diab </option>
+                <option > Branche facultés </option>
+            </select>
+
+            <label for="station" class="sr-only">La station souhaiter</label>
+            <select id="station" name="station" class="form-control" size="1" style="display: none">
+                <option selected> Grande Ceinture </option>
+                <option > Ibn Tachfine </option>
+                <option > Ctre Maintenance </option>
+                <option > Faculté Terminus </option>
+                <option > Bd Bahmad </option>
+                <option > Mohamed Diouri </option>
+                <option > Forces Aux </option>
+                <option > Littoral </option>
+                <option > La Résistance </option>
+                <option > Ennasim </option>
+                <option > Place Mohamed V </option>
+                <option > Place Al Yassir </option>
+                <option > Les hôpitaux </option>
+                <option > Sidi Moumen </option>
+                <option > Ghandi </option>
+                <option > Attacharouk </option>
+                <option > Ancien Abattoirs </option>
+                <option >  Mohamed Zef Zaf </option>
+                <option >  Zenith </option>
+                <option >  Mekka </option>
+                <option >  Casa Voyageurs </option>
+                <option >  Panoramique </option>
+                <option >  Hay Raja  </option>
+                <option >  Hôpital S Moumen </option>
+                <option >  Achouada </option>
+                <option >  Hay Hassani </option>
+                <option >  Riviera </option>
+                <option >  Bd Hassan II </option>
+                <option >  Fac. de Médecine </option>
+                <option >  Sidi Abderrahman </option>
+                <option >  Marché Central </option>
+                <option >  Abdelmoumen </option>
+                <option >  Gare Casa Sud </option>
+                <option >  Ali Yaata </option>
+                <option >  Okba Ibn Nafii </option>
+                <option >  Technopark </option>
+                <option >  Ain Diab Plage </option>
+                <option >  Bachkou </option>
+                <option >  Beauséjour </option>
+                <option >  Pl Nations Unies </option>
+                <option >  Hay Mohammadi </option>
+                <option >  Gare Oasis </option>
+                <option >  Cité de l’air </option>
+                <option >  Derb Ghellaf </option>
+            </select>
+
+            <label for="mois" class="sr-only">Le mois souhaiter</label>
+            <input type="month" id="mois" name="mois" class="form-control" style="display: none"/>
+
+            <h2 class="font-large upspace" id="stop" style="display: none">
+                <img  src="http://www.gif-maniac.com/gifs/53/53440.gif" alt="Attention" /><br/>
+                Il faut obligatoirement fermer la fenêtre du graph après usage pour le bon fonctionnement de l'application <br/>
+                Merci de votre coopération!
+            </h2>
+
+            <button class="btn btn-lg btn-connect btn-block" type="submit">GO</button>
+
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        var show = function () {
+            $("#jour").show()
+                .prop('required',true);
+            $("#station").show()
+                .prop('required',true);
+            $("#mois").hide()
+                .prop('required',false);
+            $("#stop").hide();
+            $("#branche").hide()
+                .prop('required',false);
+        }
+
+        var show1 = function () {
+            $("#stop").show();
+            $("#mois").hide()
+                .prop('required',false);
+            $("#jour").show()
+                .prop('required',true);
+            $("#branche").show()
+                .prop('required',true);
+            $("#station").hide()
+                .prop('required',false);
+
+
+        }
+        var show3 = function () {
+            $("#stop").hide();
+            $("#mois").hide()
+                .prop('required',false);
+            $("#jour").show()
+                .prop('required',true);
+            $("#branche").show()
+                .prop('required',true);
+            $("#station").hide()
+                .prop('required',false);
+
+        }
+
+        var hide = function () {
+            $("#jour").hide()
+                .prop('required',false);
+            $("#stop").hide();
+            $("#mois").show()
+                .prop('required', true);
+
+        }
+
+        var show2 = function () {
+            $("#jour").show()
+                .prop('required', true);
+            $("#station").show()
+                .prop('required',true);
+            $("#mois").hide()
+                .prop('required', false);
+            $("#stop").show();
+            $("#branche").hide()
+                .prop('required',false);
+        }
+    </script>
+
+{% endblock %}
