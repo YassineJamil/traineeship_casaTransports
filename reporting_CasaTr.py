@@ -16,7 +16,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 
 
-# create our little application :)
+#création de l'application
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -25,6 +25,7 @@ def connect():
                             "' user='"+ session['user'] +
                             "' host='" + session['host'] +
                             "' password='" + session['password'] + "'")
+
 def monthstr_To_monthnbr(monthstr):
     with Switch(monthstr) as case:
         if case("janvier"):
@@ -153,6 +154,7 @@ def db_action():
     else:
         return redirect(url_for('error'))
 
+# fonction station et branche SDD_station
 @app.route('/ssdmonthstation/', methods=['GET', 'POST'])
 def ssdmonthstation():
     if session.get('connexion'):
@@ -259,39 +261,129 @@ def ssdmonthstation():
                 if (check):
                     if (choix == '2'):
                         #creer une table ou je met le resultat voulu puis je l'affiche
-                        cur1.execute(
+                        cur2.execute(
                             """
-                                SELECT jourvalidation, tranchehoraire, nb1eremontees
-                                FROM """ + m_str + '_' + y + """
-                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
-                                ORDER BY tranchehoraire;
+                                DROP TABLE IF EXISTS buffer;
+                                DROP TABLE IF EXISTS buffer2;
+                                CREATE TABLE buffer
+                                (
+                                  jourvalidation date,
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
                             """
                         )
-                        result = cur1.fetchall()
+                        for station in list_station:
+                            cur1.execute(
+                                """
+                                    INSERT INTO buffer
+                                    SELECT jourvalidation, tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    ORDER BY tranchehoraire;
+                                """
+                            )
+                        cur2.execute(
+                            """
+                                CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                            """
+                        )
+                        cur2.execute(
+                            """
+                                INSERT INTO buffer2
+                                select distinct tranchehoraire, sum(nb1eremontees)
+                                from buffer
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                            """
+                        )
+                        cur3.execute(
+                            """
+                                SELECT * FROM buffer2;
+                            """
+                        )
+                        result = cur3.fetchall()
+                        cur3.execute(
+                            """
+                                SELECT jourvalidation FROM buffer LIMIT 1;
+                            """
+                        )
+                        date_res = cur3.fetchall()
+
+                        cur3.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer;
+                                DROP TABLE IF EXISTS buffer2;
+                            """
+                        )
                         tab_res = []
                         for t in result:
-                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2])])
-                        return render_template('ssdmonthstation_result_jour.html', active='ssdmonthstation',
-                                               res=tab_res, res2=station)
+                            tab_res.append([split_int(t[0]),  split_int(t[1])])
+                        return render_template('ssdmonthbranche_result_jour.html', active='ssdmonthstation',
+                                               res=tab_res, res2 = branche, res3 = str(date_res[0][0]))
                     else:
-                        cur1.execute(
+                        cur2.execute(
                             """
-                                SELECT tranchehoraire
-                                FROM """ + m_str + '_' + y + """
-                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
-                                ORDER BY tranchehoraire;
-                            """
-                        )
-                        x = cur1.fetchall()
-                        cur1.execute(
-                            """
-                                SELECT nb1eremontees
-                                FROM """ + m_str + '_' + y + """
-                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
-                                ORDER BY tranchehoraire;
+                                DROP TABLE IF EXISTS buffer;
+                                DROP TABLE IF EXISTS buffer2;
+                                CREATE TABLE buffer
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
                             """
                         )
-                        z = cur1.fetchall()
+                        for station in list_station:
+                            cur1.execute(
+                                """
+                                    INSERT INTO buffer
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    ORDER BY tranchehoraire;
+                                """
+                            )
+                        cur2.execute(
+                            """
+                                CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                            """
+                        )
+                        cur2.execute(
+                            """
+                                INSERT INTO buffer2
+                                select distinct tranchehoraire, sum(nb1eremontees)
+                                from buffer
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                            """
+                        )
+
+                        cur3.execute(
+                            """
+                                SELECT tranchehoraire from buffer2;
+                            """
+                        )
+                        x = cur3.fetchall()
+                        cur3.execute(
+                            """
+                            SELECT nb1eremontees from buffer2;
+                            """
+                        )
+                        z = cur3.fetchall()
+                        cur3.execute(
+                            """
+                              DROP TABLE IF EXISTS buffer;
+                              DROP TABLE IF EXISTS buffer2;
+                            """
+                        )
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
@@ -304,11 +396,11 @@ def ssdmonthstation():
                 else:
                     # la date n'est pas bonne
                     return render_template('ssdmonthstation_error.html', active='ssdmonthstation')
-
         return render_template('ssdmonthstation.html', active='ssdmonthstation')
     else:
         return redirect(url_for('error'))
 
+#fonction par mois SDD_mois
 @app.route('/ssdmonth/', methods=['GET', 'POST'])
 def ssdmonth():
     if session.get('connexion'):
@@ -372,7 +464,7 @@ def ssdmonth():
                 else:
                     # la date n'est pas bonne
                     return render_template('ssdmonth_error.html', active='ssdmonth')
-            '''if( choix == '2' or choix == '3'):
+            elif( choix == '2' or choix == '3'):
                 date = request.form['mois']
                 tab_date = date.split('-')
                 y = tab_date[0]
@@ -389,34 +481,62 @@ def ssdmonth():
                     if (choix == '2'):
                         cur1.execute(
                             """
-                                SELECT * FROM """ + m_str + '_' + y + """
-                                    WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
-                                """
+                              SELECT DISTINCT tranchehoraire, (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation)
+                              FROM """ + m_str + '_' + y + """))
+                              FROM """ + m_str + '_' + y + """
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                            """
                         )
+
                         result = cur1.fetchall()
                         tab_res = []
                         for t in result:
-                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2])])
-                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res=tab_res)
+                            tab_res.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res=tab_res,
+                                               res2 = m_str + '_' + y)
                     else:
+                        cur2.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer2;
+                                CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                            """
+                        )
+                        cur2.execute(
+                            """
+                                INSERT INTO buffer2
+                                SELECT DISTINCT tranchehoraire, (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation)
+                                FROM """ + m_str + '_' + y + """))
+                                FROM """ + m_str + '_' + y + """
+                                GROUP BY tranchehoraire
+                                ORDER BY tranchehoraire;
+                            """
+                        )
                         cur1.execute(
                             """
-                                SELECT tranchehoraire FROM """ + m_str + '_' + y + """
-                                    WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
-                                """
+                                SELECT tranchehoraire FROM buffer2;
+                            """
                         )
                         x = cur1.fetchall()
                         cur1.execute(
                             """
-                                SELECT nb1eremontees FROM """ + m_str + '_' + y + """
-                                    WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
-                                """
+                                SELECT nb1eremontees FROM buffer2;
+                            """
                         )
                         y = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer2;
+                            """
+                        )
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
-                        title('Graphique journalier')
+                        title('Graphique moyenne mensuel')
                         plot(x, y, "b-o", label=str(date))
                         legend()
                         grid()
@@ -424,12 +544,92 @@ def ssdmonth():
                         close()
                 else:
                     # la date n'est pas bonne
-                    return render_template('ssdmonth_error.html', active='ssdmonth')'''
+                    return render_template('ssdmonth_error.html', active='ssdmonth')
+            else:
+                date = request.form['mois']
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str + '_' + y + """';
+                            """
+                )
+                check = cur1.fetchall()
+                if (check):
+                    if (choix == '0'):
+                        cur1.execute(
+                            """
+                              SELECT DISTINCT tranchehoraire, SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
+                        )
+
+                        result = cur1.fetchall()
+                        tab_res = []
+                        for t in result:
+                            tab_res.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res=tab_res,
+                                               res2=m_str + '_' + y)
+                    else:
+                        cur2.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer2;
+                                CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                            """
+                        )
+                        cur2.execute(
+                            """
+                                INSERT INTO buffer2
+                                SELECT DISTINCT tranchehoraire, SUM(nb1eremontees)
+                                FROM """ + m_str + '_' + y + """
+                                GROUP BY tranchehoraire
+                                ORDER BY tranchehoraire;
+                                """
+                        )
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire FROM buffer2;
+                            """
+                        )
+                        x = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT nb1eremontees FROM buffer2;
+                            """
+                        )
+                        y = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer2;
+                            """
+                        )
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique mensuel')
+                        plot(x, y, "b-o", label=str(date))
+                        legend()
+                        grid()
+                        show()
+                        close()
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonth_error.html', active='ssdmonth')
 
         return render_template('ssdmonth.html', active='ssdmonth')
     else:
         return redirect(url_for('error'))
 
+#SDC mois
 @app.route('/tableinspectormonth/', methods=['GET', 'POST'])
 def tableinspectormonth():
     if session.get('connexion'):
@@ -529,6 +729,7 @@ def tableinspectormonth():
     else:
         return redirect(url_for('error'))
 
+#SDC annee
 @app.route('/tableinspectoryear/', methods=['GET', 'POST'])
 def tableinspectoryear():
     if session.get('connexion'):

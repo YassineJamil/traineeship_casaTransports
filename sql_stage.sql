@@ -189,14 +189,12 @@ WHERE directionvalidation = '2';
 
 -- SDD script complet de creation de table et de son remplissage, ne pas oublier de bien mentionner la date
 
-CREATE TABLE juin_2016
+CREATE TABLE public.mai_2016
 (
-  dthroperation timestamp without time zone PRIMARY KEY ,
+  jourvalidation date,
   tranchehoraire integer,
-  tranchequartheure character(6),
-  nb1eremontees integer,
-  numlieu integer,
-  libellearret character(20)
+  libellearret character(20),
+  nb1eremontees integer
 );
 
 COPY juin_2016
