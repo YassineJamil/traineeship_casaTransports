@@ -1,0 +1,35 @@
+{% extends "container.html" %}
+{% block body %}
+<div class="table-responsive">
+     <table class = table-result-year >
+        <h2 class ="h2"> Donnèes de validations mensuelle</h2> <br/>
+        <h3 >
+            Le mois    : {{ res2 }}
+        </h3>
+        <thead> <!-- En-tête du tableau -->
+            <tr>
+                <th > Tranche Horaire </th>
+                <th > Nombre Première Montée </th>
+            </tr>
+        </thead>
+          <!--
+        <tfoot>  Pied de tableau
+            <tr>
+                <th>Nom</th>
+                <th>Âge</th>
+                <th>Pays</th>
+            </tr>
+        </tfoot>
+          -->
+
+        <tbody> <!-- Corps du tableau -->
+            {% for t in res %}
+            <tr>
+                <td>{{ t[0] }}</td>
+                <td>{{ t[1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+     </table>
+     </div>
+{% endblock %}

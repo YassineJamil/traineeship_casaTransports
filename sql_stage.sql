@@ -187,4 +187,23 @@ UPDATE janvier_2015
 SET directionvalidation = 'sortie'
 WHERE directionvalidation = '2';
 
+-- SDD script complet de creation de table et de son remplissage, ne pas oublier de bien mentionner la date
 
+CREATE TABLE public.mai_2016
+(
+  jourvalidation date,
+  tranchehoraire integer,
+  libellearret character(20),
+  nb1eremontees integer
+);
+
+COPY juin_2016
+FROM 'C:/Program Files/PostgreSQL/9.5/CSV/SDD/SDD_mois_0716_clean.csv'
+WITH DELIMITER ',';
+
+-- pour faire la moyenne
+select sum(nb1eremontees)/30 from avril_2016;
+select count(distinct jourvalidation) from mai_2016;
+select sum(nb1eremontees)/(select count(distinct jourvalidation) from mai_2016) from mai_2016;
+-- exemple de requete pour une station
+SELECT jourvalidation, tranchehoraire, nb1eremontees FROM juillet_2016 WHERE libellearret = 'Hay Raja' AND jourvalidation = '2016-07-19' ORDER BY tranchehoraire;
