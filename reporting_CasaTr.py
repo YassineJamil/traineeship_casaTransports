@@ -163,6 +163,7 @@ def ssdmonthstation():
             cur1 = conn.cursor()
             cur2 = conn.cursor()
             cur3 = conn.cursor()
+            cur4 = conn.cursor()
             choix = request.form['choice']
             if( choix == '0' or choix == '1'):
                 date = request.form['jour']
@@ -181,26 +182,42 @@ def ssdmonthstation():
                 check = cur1.fetchall()
                 if (check) :
                     if (choix == '0'):
+                        tab_res1 = []
+                        tab_res2 = []
                         cur1.execute(
                             """
-                                SELECT jourvalidation, tranchehoraire, nb1eremontees
-                                FROM """+ m_str+'_'+y+"""
-                                WHERE libellearret = '"""+station+"""' AND jourvalidation = '"""+date+"""'
+                                SELECT tranchehoraire, nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Aller'
                                 ORDER BY tranchehoraire;
                             """
                         )
                         result = cur1.fetchall()
-                        tab_res = []
                         for t in result:
-                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2])])
-                        return render_template('ssdmonthstation_result_jour.html', active='ssdmonthstation',
-                                               res=tab_res , res2 = station)
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire, nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Retour'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res2.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonthstation_result_jour.html', active='ssdmonthstation', res1=tab_res1,
+                                               res2=tab_res2, res3=date, res4=station)
                     else:
+                        # dessin aller
                         cur1.execute(
                             """
                                 SELECT tranchehoraire
-                                FROM """+ m_str+'_'+y+"""
-                                WHERE libellearret = '"""+station+"""' AND jourvalidation = '"""+date+"""'
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Aller'
                                 ORDER BY tranchehoraire;
                             """
                         )
@@ -208,17 +225,40 @@ def ssdmonthstation():
                         cur1.execute(
                             """
                                 SELECT nb1eremontees
-                                FROM """+ m_str+'_'+y+"""
-                                WHERE libellearret = '"""+station+"""' AND jourvalidation = '"""+date+"""'
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Aller'
                                 ORDER BY tranchehoraire;
                             """
                         )
                         z = cur1.fetchall()
+                        # dessin retour
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Retour'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Retour'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
                         title('Graphique journalier')
-                        plot(x, z, "b-o", label=str(date))
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
                         legend()
                         grid()
                         show()
@@ -263,74 +303,26 @@ def ssdmonthstation():
                         #creer une table ou je met le resultat voulu puis je l'affiche
                         cur2.execute(
                             """
-                                DROP TABLE IF EXISTS buffer;
+                                DROP TABLE IF EXISTS buffer1;
                                 DROP TABLE IF EXISTS buffer2;
-                                CREATE TABLE buffer
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                                CREATE TABLE buffer1
                                 (
-                                  jourvalidation date,
                                   tranchehoraire integer,
                                   nb1eremontees integer
                                 );
-                            """
-                        )
-                        for station in list_station:
-                            cur1.execute(
-                                """
-                                    INSERT INTO buffer
-                                    SELECT jourvalidation, tranchehoraire, nb1eremontees
-                                    FROM """ + m_str + '_' + y + """
-                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
-                                    ORDER BY tranchehoraire;
-                                """
-                            )
-                        cur2.execute(
-                            """
                                 CREATE TABLE buffer2
                                 (
                                   tranchehoraire integer,
                                   nb1eremontees integer
                                 );
-                            """
-                        )
-                        cur2.execute(
-                            """
-                                INSERT INTO buffer2
-                                select distinct tranchehoraire, sum(nb1eremontees)
-                                from buffer
-                                group by tranchehoraire
-                                order by tranchehoraire;
-                            """
-                        )
-                        cur3.execute(
-                            """
-                                SELECT * FROM buffer2;
-                            """
-                        )
-                        result = cur3.fetchall()
-                        cur3.execute(
-                            """
-                                SELECT jourvalidation FROM buffer LIMIT 1;
-                            """
-                        )
-                        date_res = cur3.fetchall()
-
-                        cur3.execute(
-                            """
-                                DROP TABLE IF EXISTS buffer;
-                                DROP TABLE IF EXISTS buffer2;
-                            """
-                        )
-                        tab_res = []
-                        for t in result:
-                            tab_res.append([split_int(t[0]),  split_int(t[1])])
-                        return render_template('ssdmonthbranche_result_jour.html', active='ssdmonthstation',
-                                               res=tab_res, res2 = branche, res3 = str(date_res[0][0]))
-                    else:
-                        cur2.execute(
-                            """
-                                DROP TABLE IF EXISTS buffer;
-                                DROP TABLE IF EXISTS buffer2;
-                                CREATE TABLE buffer
+                                CREATE TABLE buffer3
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer4
                                 (
                                   tranchehoraire integer,
                                   nb1eremontees integer
@@ -340,55 +332,163 @@ def ssdmonthstation():
                         for station in list_station:
                             cur1.execute(
                                 """
-                                    INSERT INTO buffer
+                                    INSERT INTO buffer1
                                     SELECT tranchehoraire, nb1eremontees
                                     FROM """ + m_str + '_' + y + """
                                     WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Aller'
+                                    ORDER BY tranchehoraire;
+                                    INSERT INTO buffer2
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Retour'
                                     ORDER BY tranchehoraire;
                                 """
                             )
+                        # buffer3 aller et buffer4 retour
                         cur2.execute(
                             """
+                                INSERT INTO buffer3
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer1
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                                INSERT INTO buffer4
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer2
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                            """
+                        )
+                        cur3.execute(
+                            """
+                                SELECT * FROM buffer3;
+                            """
+                        )
+                        result_aller = cur3.fetchall()
+                        cur4.execute(
+                            """
+                                SELECT * FROM buffer4;
+                            """
+                        )
+                        result_retour = cur4.fetchall()
+                        tab_res1 = []
+                        tab_res2 = []
+                        for t in result_aller:
+                            tab_res1.append([split_int(t[0]),  split_int(t[1])])
+                        for t in result_retour:
+                            tab_res2.append([split_int(t[0]), split_int(t[1])])
+                        cur3.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                            """
+                        )
+                        return render_template('ssdmonthbranche_result_jour.html', active='ssdmonthstation',
+                                               res1=tab_res1, res2=tab_res2, res3=date, res4=branche)
+                    else:
+                        cur2.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                                CREATE TABLE buffer1
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
                                 CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer3
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer4
                                 (
                                   tranchehoraire integer,
                                   nb1eremontees integer
                                 );
                             """
                         )
+                        for station in list_station:
+                            cur1.execute(
+                                """
+                                    INSERT INTO buffer1
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Aller'
+                                    ORDER BY tranchehoraire;
+                                    INSERT INTO buffer2
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Retour'
+                                    ORDER BY tranchehoraire;
+                                """
+                            )
+                        # buffer3 aller et buffer4 retour
                         cur2.execute(
                             """
-                                INSERT INTO buffer2
-                                select distinct tranchehoraire, sum(nb1eremontees)
-                                from buffer
+                                INSERT INTO buffer3
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer1
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                                INSERT INTO buffer4
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer2
                                 group by tranchehoraire
                                 order by tranchehoraire;
                             """
                         )
-
                         cur3.execute(
                             """
-                                SELECT tranchehoraire from buffer2;
+                                SELECT tranchehoraire FROM buffer3;
                             """
                         )
                         x = cur3.fetchall()
                         cur3.execute(
                             """
-                            SELECT nb1eremontees from buffer2;
+                                SELECT nb1eremontees FROM buffer3;
                             """
                         )
                         z = cur3.fetchall()
+                        cur4.execute(
+                            """
+                                SELECT tranchehoraire FROM buffer4;
+                            """
+                        )
+                        x1 = cur4.fetchall()
+
+                        cur4.execute(
+                            """
+                                SELECT nb1eremontees FROM buffer4;
+                            """
+                        )
+                        z1 = cur4.fetchall()
                         cur3.execute(
                             """
-                              DROP TABLE IF EXISTS buffer;
-                              DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
                             """
                         )
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
                         title('Graphique journalier')
-                        plot(x, z, "b-o", label=str(date))
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
                         legend()
                         grid()
                         show()
@@ -426,37 +526,71 @@ def ssdmonth():
                 check = cur1.fetchall()
                 if (check) :
                     if (choix == '4'):
+                        tab_res1 = []
+                        tab_res2 = []
                         cur1.execute(
                             """
-                                SELECT * FROM """+ m_str+'_'+y+"""
-                                WHERE jourvalidation = '"""+date+"""' order by tranchehoraire;
+                                SELECT tranchehoraire, SUM(nb1eremontees) FROM """+ m_str+'_'+y+"""
+                                WHERE jourvalidation = '"""+date+"""' AND directiontrajet = 'Aller'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
                             """
                         )
                         result = cur1.fetchall()
-                        tab_res = []
                         for t in result:
-                            tab_res.append([str(t[0]), split_int(t[1]), split_int(t[2])])
-                        return render_template('ssdmonth_result_jour.html', active='ssdmonth', res=tab_res)
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire, SUM(nb1eremontees) FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Retour'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res2.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result_jour.html', active='ssdmonth', res1=tab_res1,
+                                               res2= tab_res2, res3= date)
                     else:
+                        #dessin aller
                         cur1.execute(
                             """
                                 SELECT tranchehoraire FROM """ + m_str + '_' + y + """
-                                WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Aller'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
                             """
                         )
                         x = cur1.fetchall()
                         cur1.execute(
                             """
-                                SELECT nb1eremontees FROM """ + m_str + '_' + y + """
-                                WHERE jourvalidation = '""" + date + """' order by tranchehoraire;
+                                SELECT SUM(nb1eremontees) FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Aller'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
                             """
                         )
                         z = cur1.fetchall()
+                        #dessin retour
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Retour'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT SUM(nb1eremontees) FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Retour'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
                         title('Graphique journalier')
-                        plot(x, z, "b-o", label=str(date))
+                        plot(x, z, "b-o", label=str(date)+ ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
                         legend()
                         grid()
                         show()
@@ -479,65 +613,89 @@ def ssdmonth():
                 check = cur1.fetchall()
                 if (check):
                     if (choix == '2'):
+                        tab_res1 = []
+                        tab_res3 = []
+                        # aller
                         cur1.execute(
                             """
-                              SELECT DISTINCT tranchehoraire, (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation)
-                              FROM """ + m_str + '_' + y + """))
+                              SELECT tranchehoraire, (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation) FROM """ + m_str + '_' + y + """))
                               FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
                               GROUP BY tranchehoraire
                               ORDER BY tranchehoraire;
                             """
                         )
 
                         result = cur1.fetchall()
-                        tab_res = []
                         for t in result:
-                            tab_res.append([split_int(t[0]), split_int(t[1])])
-                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res=tab_res,
-                                               res2 = m_str + '_' + y)
-                    else:
-                        cur2.execute(
-                            """
-                                DROP TABLE IF EXISTS buffer2;
-                                CREATE TABLE buffer2
-                                (
-                                  tranchehoraire integer,
-                                  nb1eremontees integer
-                                );
-                            """
-                        )
-                        cur2.execute(
-                            """
-                                INSERT INTO buffer2
-                                SELECT DISTINCT tranchehoraire, (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation)
-                                FROM """ + m_str + '_' + y + """))
-                                FROM """ + m_str + '_' + y + """
-                                GROUP BY tranchehoraire
-                                ORDER BY tranchehoraire;
-                            """
-                        )
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        # retour
                         cur1.execute(
                             """
-                                SELECT tranchehoraire FROM buffer2;
+                              SELECT tranchehoraire, (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation) FROM """ + m_str + '_' + y + """))
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                            """
+                        )
+
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res3.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res1=tab_res1,
+                                               res2=m_str + '_' + y, res3=tab_res3)
+                    else:
+                        # dessin aller
+                        cur1.execute(
+                            """
+                              SELECT tranchehoraire
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
                             """
                         )
                         x = cur1.fetchall()
                         cur1.execute(
                             """
-                                SELECT nb1eremontees FROM buffer2;
+                              SELECT (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation)
+                              FROM """ + m_str + '_' + y + """))
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
                             """
                         )
-                        y = cur1.fetchall()
+                        z = cur1.fetchall()
+                        # dessin retour
                         cur1.execute(
                             """
-                                DROP TABLE IF EXISTS buffer2;
+                              SELECT tranchehoraire
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
                             """
                         )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                              SELECT (SUM(nb1eremontees)/(SELECT COUNT(DISTINCT jourvalidation)
+                              FROM """ + m_str + '_' + y + """))
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
                         title('Graphique moyenne mensuel')
-                        plot(x, y, "b-o", label=str(date))
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
                         legend()
                         grid()
                         show()
@@ -560,63 +718,87 @@ def ssdmonth():
                 check = cur1.fetchall()
                 if (check):
                     if (choix == '0'):
+                        tab_res1 = []
+                        tab_res3 = []
+                        #aller
                         cur1.execute(
                             """
-                              SELECT DISTINCT tranchehoraire, SUM(nb1eremontees)
+                              SELECT tranchehoraire, SUM(nb1eremontees)
                               FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
                               GROUP BY tranchehoraire
                               ORDER BY tranchehoraire;
                                 """
                         )
 
                         result = cur1.fetchall()
-                        tab_res = []
                         for t in result:
-                            tab_res.append([split_int(t[0]), split_int(t[1])])
-                        return render_template('ssdmonth_result_moyenne.html', active='ssdmonth', res=tab_res,
-                                               res2=m_str + '_' + y)
-                    else:
-                        cur2.execute(
-                            """
-                                DROP TABLE IF EXISTS buffer2;
-                                CREATE TABLE buffer2
-                                (
-                                  tranchehoraire integer,
-                                  nb1eremontees integer
-                                );
-                            """
-                        )
-                        cur2.execute(
-                            """
-                                INSERT INTO buffer2
-                                SELECT DISTINCT tranchehoraire, SUM(nb1eremontees)
-                                FROM """ + m_str + '_' + y + """
-                                GROUP BY tranchehoraire
-                                ORDER BY tranchehoraire;
-                                """
-                        )
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        #retour
                         cur1.execute(
                             """
-                                SELECT tranchehoraire FROM buffer2;
+                              SELECT tranchehoraire, SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
+                        )
+
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res3.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result.html', active='ssdmonth', res1=tab_res1,
+                                               res2=m_str + '_' + y, res3=tab_res3)
+                    else:
+                        # dessin aller
+                        cur1.execute(
                             """
+                              SELECT tranchehoraire
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
                         )
                         x = cur1.fetchall()
                         cur1.execute(
                             """
-                                SELECT nb1eremontees FROM buffer2;
-                            """
+                              SELECT SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
                         )
-                        y = cur1.fetchall()
+                        z = cur1.fetchall()
+                        # dessin retour
                         cur1.execute(
                             """
-                                DROP TABLE IF EXISTS buffer2;
+                              SELECT tranchehoraire
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
                             """
                         )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                              SELECT SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
                         xticks(np.linspace(0, 23, 24, endpoint=True))
                         xlabel("Tranche Horaire")
                         ylabel("Validation")
                         title('Graphique mensuel')
-                        plot(x, y, "b-o", label=str(date))
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
                         legend()
                         grid()
                         show()
