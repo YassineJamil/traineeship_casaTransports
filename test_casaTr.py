@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
+# coding: utf8
 """
 """
 
 from matplotlib._png import read_png
 import os
+
 import psycopg2
 from switch import Switch
 from pylab import *
@@ -15,7 +16,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 
 
-# create our little application :)
+#création de l'application
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -24,6 +25,7 @@ def connect():
                             "' user='"+ session['user'] +
                             "' host='" + session['host'] +
                             "' password='" + session['password'] + "'")
+
 def monthstr_To_monthnbr(monthstr):
     with Switch(monthstr) as case:
         if case("janvier"):
@@ -137,12 +139,14 @@ def db_action():
     if session.get('connexion'):
         if request.method == 'POST':
             with Switch(request.form['action']) as case:
-                if case("tableinspectormonth"):
-                    return redirect(url_for("tableinspectormonth"))
-                if case("tableinspectoryear"):
-                    return redirect(url_for("tableinspectoryear"))
-                if case("test"):
-                    return redirect(url_for("test"))
+                if case('tableinspectormonth'):
+                    return redirect(url_for('tableinspectormonth'))
+                if case('tableinspectoryear'):
+                    return redirect(url_for('tableinspectoryear'))
+                if case('ssdmonth'):
+                    return redirect(url_for('ssdmonth'))
+                if case('ssdmonthstation'):
+                    return redirect(url_for('ssdmonthstation'))
                 if case.default:
                     return redirect(url_for('error'))
         else:
@@ -150,7 +154,559 @@ def db_action():
     else:
         return redirect(url_for('error'))
 
+# fonction station et branche SDD_station
+@app.route('/ssdmonthstation/', methods=['GET', 'POST'])
+def ssdmonthstation():
+    if session.get('connexion'):
+        if request.method == 'POST':
+            conn = connect()
+            cur1 = conn.cursor()
+            cur2 = conn.cursor()
+            cur3 = conn.cursor()
+            cur4 = conn.cursor()
+            choix = request.form['choice']
+            if( choix == '0' or choix == '1'):
+                date = request.form['jour']
+                station = request.form['station']
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                j = tab_date[2]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str+'_'+y + """';
+                    """
+                )
+                check = cur1.fetchall()
+                if (check) :
+                    if (choix == '0'):
+                        tab_res1 = []
+                        tab_res2 = []
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire, nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Aller'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire, nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Retour'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res2.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonthstation_result_jour.html', active='ssdmonthstation', res1=tab_res1,
+                                               res2=tab_res2, res3=date, res4=station)
+                    else:
+                        # dessin aller
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Aller'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        x = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Aller'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        z = cur1.fetchall()
+                        # dessin retour
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Retour'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT nb1eremontees
+                                FROM """ + m_str + '_' + y + """
+                                WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                AND directiontrajet = 'Retour'
+                                ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique journalier')
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
+                        legend()
+                        grid()
+                        show()
+                        close()
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonthstation_error.html', active='ssdmonthstation')
+            if (choix == '2' or choix == '3'):
+                date = request.form['jour']
+                branche = request.form['branche']
+                with Switch(branche) as case:
+                    if case('Branche tronc commun'):
+                        list_station = ['Sidi Moumen', 'Ennasim', 'Mohamed Zef Zaf', 'Ctre Maintenance',
+                                        u'Hôpital S Moumen', 'Attacharouk', 'Okba Ibn Nafii', 'Forces Aux', 'Ibn Tachfine',
+                                        'Hay Raja', 'Ali Yaata', 'Achouada', 'Hay Mohammadi', 'Grande Ceinture', 'Ancien Abattoirs',
+                                        'Bd Bahmad','Place Al Yassir', u'La Résistance', 'Mohamed Diouri', 'Pl Nations Unies',
+                                        'Abdelmoumen', u'Marché Central', u'Fac. de Médecine', 'Casa Voyageurs', u'Les hôpitaux',
+                                        'Bd Hassan II', 'Place Mohamed V']
+                    if case('Branche ain diab'):
+                        list_station = ['Sidi Abderrahman', u'Cité de l’air', 'Ghandi', 'Derb Ghellaf', 'Littoral',
+                                        'Hay Hassani', u'Beauséjour', 'Riviera', 'Ain Diab Plage']
+                    if case(u'Branche facultés'):
+                        list_station = ['Mekka', 'Zenith', 'Panoramique', 'Gare Oasis', 'Bachkou', 'Technopark',
+                                'Gare Casa Sud', u'Faculté Terminus']
+                    if case.default:
+                        return render_template('ssdmonthstation_error.html', active='ssdmonthstation')
 
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                j = tab_date[2]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str + '_' + y + """';
+                    """
+                )
+                check = cur1.fetchall()
+                if (check):
+                    if (choix == '2'):
+                        #creer une table ou je met le resultat voulu puis je l'affiche
+                        cur2.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                                CREATE TABLE buffer1
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer3
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer4
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                            """
+                        )
+                        for station in list_station:
+                            cur1.execute(
+                                """
+                                    INSERT INTO buffer1
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Aller'
+                                    ORDER BY tranchehoraire;
+                                    INSERT INTO buffer2
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Retour'
+                                    ORDER BY tranchehoraire;
+                                """
+                            )
+                        # buffer3 aller et buffer4 retour
+                        cur2.execute(
+                            """
+                                INSERT INTO buffer3
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer1
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                                INSERT INTO buffer4
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer2
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                            """
+                        )
+                        cur3.execute(
+                            """
+                                SELECT * FROM buffer3;
+                            """
+                        )
+                        result_aller = cur3.fetchall()
+                        cur4.execute(
+                            """
+                                SELECT * FROM buffer4;
+                            """
+                        )
+                        result_retour = cur4.fetchall()
+                        tab_res1 = []
+                        tab_res2 = []
+                        for t in result_aller:
+                            tab_res1.append([split_int(t[0]),  split_int(t[1])])
+                        for t in result_retour:
+                            tab_res2.append([split_int(t[0]), split_int(t[1])])
+                        cur3.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                            """
+                        )
+                        return render_template('ssdmonthbranche_result_jour.html', active='ssdmonthstation',
+                                               res1=tab_res1, res2=tab_res2, res3=date, res4=branche)
+                    else:
+                        cur2.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                                CREATE TABLE buffer1
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer2
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer3
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                                CREATE TABLE buffer4
+                                (
+                                  tranchehoraire integer,
+                                  nb1eremontees integer
+                                );
+                            """
+                        )
+                        for station in list_station:
+                            cur1.execute(
+                                """
+                                    INSERT INTO buffer1
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Aller'
+                                    ORDER BY tranchehoraire;
+                                    INSERT INTO buffer2
+                                    SELECT tranchehoraire, nb1eremontees
+                                    FROM """ + m_str + '_' + y + """
+                                    WHERE libellearret = '""" + station + """' AND jourvalidation = '""" + date + """'
+                                    AND directiontrajet = 'Retour'
+                                    ORDER BY tranchehoraire;
+                                """
+                            )
+                        # buffer3 aller et buffer4 retour
+                        cur2.execute(
+                            """
+                                INSERT INTO buffer3
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer1
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                                INSERT INTO buffer4
+                                select tranchehoraire, sum(nb1eremontees)
+                                from buffer2
+                                group by tranchehoraire
+                                order by tranchehoraire;
+                            """
+                        )
+                        cur3.execute(
+                            """
+                                SELECT tranchehoraire FROM buffer3;
+                            """
+                        )
+                        x = cur3.fetchall()
+                        cur3.execute(
+                            """
+                                SELECT nb1eremontees FROM buffer3;
+                            """
+                        )
+                        z = cur3.fetchall()
+                        cur4.execute(
+                            """
+                                SELECT tranchehoraire FROM buffer4;
+                            """
+                        )
+                        x1 = cur4.fetchall()
+
+                        cur4.execute(
+                            """
+                                SELECT nb1eremontees FROM buffer4;
+                            """
+                        )
+                        z1 = cur4.fetchall()
+                        cur3.execute(
+                            """
+                                DROP TABLE IF EXISTS buffer1;
+                                DROP TABLE IF EXISTS buffer2;
+                                DROP TABLE IF EXISTS buffer3;
+                                DROP TABLE IF EXISTS buffer4;
+                            """
+                        )
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique journalier')
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
+                        legend()
+                        grid()
+                        show()
+                        close()
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonthstation_error.html', active='ssdmonthstation')
+        return render_template('ssdmonthstation.html', active='ssdmonthstation')
+    else:
+        return redirect(url_for('error'))
+
+#fonction par mois SDD_mois
+@app.route('/ssdmonth/', methods=['GET', 'POST'])
+def ssdmonth():
+    if session.get('connexion'):
+        if request.method == 'POST':
+            conn = connect()
+            cur1 = conn.cursor()
+            cur2 = conn.cursor()
+            cur3 = conn.cursor()
+            choix = request.form['choice']
+            if( choix == '4' or choix == '5'):
+                date = request.form['jour']
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                j = tab_date[2]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str+'_'+y + """';
+                    """
+                )
+                check = cur1.fetchall()
+                if (check) :
+                    if (choix == '4'):
+                        tab_res1 = []
+                        tab_res2 = []
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire, SUM(nb1eremontees) FROM """+ m_str+'_'+y+"""
+                                WHERE jourvalidation = '"""+date+"""' AND directiontrajet = 'Aller'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire, SUM(nb1eremontees) FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Retour'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res2.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result_jour.html', active='ssdmonth', res1=tab_res1,
+                                               res2= tab_res2, res3= date)
+                    else:
+                        #dessin aller
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Aller'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        x = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT SUM(nb1eremontees) FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Aller'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        z = cur1.fetchall()
+                        #dessin retour
+                        cur1.execute(
+                            """
+                                SELECT tranchehoraire FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Retour'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                                SELECT SUM(nb1eremontees) FROM """ + m_str + '_' + y + """
+                                WHERE jourvalidation = '""" + date + """' AND directiontrajet = 'Retour'
+                                GROUP BY tranchehoraire ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique journalier')
+                        plot(x, z, "b-o", label=str(date)+ ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
+                        legend()
+                        grid()
+                        show()
+                        close()
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonth_error.html', active='ssdmonth')
+            else:
+                date = request.form['mois']
+                tab_date = date.split('-')
+                y = tab_date[0]
+                m = tab_date[1]
+                m_str = monthnbr_To_monthstr(m)
+                cur1.execute(
+                    """SELECT table_name
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE table_name LIKE '%""" + m_str + '_' + y + """';
+                            """
+                )
+                check = cur1.fetchall()
+                if (check):
+                    if (choix == '0'):
+                        tab_res1 = []
+                        tab_res3 = []
+                        #aller
+                        cur1.execute(
+                            """
+                              SELECT tranchehoraire, SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
+                        )
+
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res1.append([split_int(t[0]), split_int(t[1])])
+                        #retour
+                        cur1.execute(
+                            """
+                              SELECT tranchehoraire, SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
+                        )
+
+                        result = cur1.fetchall()
+                        for t in result:
+                            tab_res3.append([split_int(t[0]), split_int(t[1])])
+                        return render_template('ssdmonth_result.html', active='ssdmonth', res1=tab_res1,
+                                               res2=m_str + '_' + y, res3=tab_res3)
+                    else:
+                        # dessin aller
+                        cur1.execute(
+                            """
+                              SELECT tranchehoraire
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
+                        )
+                        x = cur1.fetchall()
+                        cur1.execute(
+                            """
+                              SELECT SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Aller'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                                """
+                        )
+                        z = cur1.fetchall()
+                        # dessin retour
+                        cur1.execute(
+                            """
+                              SELECT tranchehoraire
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                            """
+                        )
+                        x1 = cur1.fetchall()
+                        cur1.execute(
+                            """
+                              SELECT SUM(nb1eremontees)
+                              FROM """ + m_str + '_' + y + """
+                              WHERE directiontrajet = 'Retour'
+                              GROUP BY tranchehoraire
+                              ORDER BY tranchehoraire;
+                            """
+                        )
+                        z1 = cur1.fetchall()
+                        xticks(np.linspace(0, 23, 24, endpoint=True))
+                        xlabel("Tranche Horaire")
+                        ylabel("Validation")
+                        title('Graphique mensuel')
+                        plot(x, z, "b-o", label=str(date) + ' V1')
+                        plot(x1, z1, "y-o", label=str(date) + ' V2')
+                        legend()
+                        grid()
+                        show()
+                        close()
+                else:
+                    # la date n'est pas bonne
+                    return render_template('ssdmonth_error.html', active='ssdmonth')
+
+        return render_template('ssdmonth.html', active='ssdmonth')
+    else:
+        return redirect(url_for('error'))
+
+#SDC mois
 @app.route('/tableinspectormonth/', methods=['GET', 'POST'])
 def tableinspectormonth():
     if session.get('connexion'):
@@ -250,6 +806,7 @@ def tableinspectormonth():
     else:
         return redirect(url_for('error'))
 
+#SDC annee
 @app.route('/tableinspectoryear/', methods=['GET', 'POST'])
 def tableinspectoryear():
     if session.get('connexion'):
@@ -258,7 +815,6 @@ def tableinspectoryear():
             cur1 = conn.cursor()
             cur2 = conn.cursor()
             cur3 = conn.cursor()
-            eraseFile('static/images')
             choix = request.form['choice']
             if (int(choix) == 0 or int(choix) == 1 ):
                 annee_nbr = request.form['annee']
@@ -373,10 +929,6 @@ def tableinspectoryear():
                             """
                         )
 
-
-
-
-
                     choix = request.form['choice']
                     if (int(choix) == 0):
                         cur2.execute(
@@ -420,14 +972,10 @@ def tableinspectoryear():
                         title("Evolution de validation mensuelle")
                         xlabel("Mois")
                         ylabel("Validation")
-                        numero = random()
-                        path = 'static/images/graphic'+str(numero)+'.png'
                         grid()
-                        savefig(path)
-                        tpath = path.split('/', 1)
-                        path1 = tpath[1]
+                        show()
                         close()
-                        return render_template("tableinspectoryear_result_graph.html", active="tableinspectoryear",res = path1)
+                        return render_template("tableinspectoryear.html", active="tableinspectoryear")
                 else:
                     #la date n'est pas bonne
                     return render_template("tableinspectoryear_error.html", active="tableinspectoryear")
