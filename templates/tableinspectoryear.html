@@ -7,7 +7,7 @@
                 <input type="radio" name=choice value="3"  onClick="hide1()" checked/> Synthèse validations
                 <input type="radio" name=choice value="2"  onClick="show1()" /> Graphique de synthèse <br/>
                 <input type="radio" name=choice value="0"  onClick="show()" /> Validations annuelle
-                <input type="radio" name=choice value="1"  onClick="show()" /> Graphique annuel
+                <input type="radio" name=choice value="1"  onClick="show2()" /> Graphique annuel
             </div>
             <label for="annee" class="sr-only">Annee souhaiter</label>
             <input type="text" id="annee" name="annee" class="form-control" placeholder="Entrez l'année" style="display: none">
@@ -27,6 +27,12 @@
             $("#annee").show()
                 .prop('required',true);
             $("#stop").hide();
+        }
+
+        var show2 = function () {
+            $("#annee").show()
+                .prop('required',true);
+            $("#stop").show();
         }
 
         var show1 = function () {

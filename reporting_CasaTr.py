@@ -815,7 +815,6 @@ def tableinspectoryear():
             cur1 = conn.cursor()
             cur2 = conn.cursor()
             cur3 = conn.cursor()
-            eraseFile('static/images')
             choix = request.form['choice']
             if (int(choix) == 0 or int(choix) == 1 ):
                 annee_nbr = request.form['annee']
@@ -973,14 +972,10 @@ def tableinspectoryear():
                         title("Evolution de validation mensuelle")
                         xlabel("Mois")
                         ylabel("Validation")
-                        numero = random()
-                        path = 'static/images/graphic'+str(numero)+'.png'
                         grid()
-                        savefig(path)
-                        tpath = path.split('/', 1)
-                        path1 = tpath[1]
+                        show()
                         close()
-                        return render_template("tableinspectoryear_result_graph.html", active="tableinspectoryear",res = path1)
+                        return render_template("tableinspectoryear.html", active="tableinspectoryear")
                 else:
                     #la date n'est pas bonne
                     return render_template("tableinspectoryear_error.html", active="tableinspectoryear")
