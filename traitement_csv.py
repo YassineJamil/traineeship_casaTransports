@@ -2,14 +2,8 @@
 
 import csv
 
-
-
-#vj1 = "C:/Program Files/PostgreSQL/9.5/CSV/vj1.csv"
-#cr = csv.reader(open(vj1,"rb"))
-#for row in cr:
-   # print row
-fname = "C:/Program Files/PostgreSQL/9.5/CSV/SDD_global/SDD_global_0716.csv"
-fname1 = "C:/Program Files/PostgreSQL/9.5/CSV/SDD_global/SDD_global_0716_clean.csv"
+fname = "C:/Program Files/PostgreSQL/9.5/CSV/SDD/SDD_0716.csv"
+fname1 = "C:/Program Files/PostgreSQL/9.5/CSV/SDD/SDD_0716_clean.csv"
 file1 = open(fname1, "wb")
 file = open(fname, "rb")
 
@@ -20,10 +14,9 @@ try:
     i = 0
     for row in reader:
         if i == 0:
-            print "Suppression de la premiere ligne :"
+            print "Suppression de :"
             print row
         else :
-            #row = row.insert(0, str(i))
             writer.writerow(row)
         i = i + 1
 
