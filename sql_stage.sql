@@ -207,3 +207,18 @@ select count(distinct jourvalidation) from mai_2016;
 select sum(nb1eremontees)/(select count(distinct jourvalidation) from mai_2016) from mai_2016;
 -- exemple de requete pour une station
 SELECT jourvalidation, tranchehoraire, nb1eremontees FROM juillet_2016 WHERE libellearret = 'Hay Raja' AND jourvalidation = '2016-07-19' ORDER BY tranchehoraire;
+
+-- SDD_global creation de table
+
+CREATE TABLE avril_2016
+(
+  jourvalidation date,
+  tranchehoraire integer,
+  libellearret character(20),
+  nb1eremontees integer,
+  directiontrajet character(6)
+);
+
+COPY avril_2016
+FROM 'C:/Program Files/PostgreSQL/9.5/CSV/SDD_global/SDD_global_0416_clean.csv'
+WITH DELIMITER ',';

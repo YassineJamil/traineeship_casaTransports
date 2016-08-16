@@ -34,45 +34,41 @@
                     <ul class="nav navbar-nav navbar-left">
                         <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
 
-                    {% if active == "tableinspectormonth" %}
-                        <li id="tableinspectormonth" class="active">
-                    {% else %}
-                        <li id="tableinspectormonth" class="">
-                    {% endif %}
-                            <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDC rapport mensuel </a>
-                        </li>
+                        {% if active == "tableinspectormonth" %}
+                            <li id="tableinspectormonth" class="active">
+                        {% else %}
+                            <li id="tableinspectormonth" class="">
+                        {% endif %}
+                                <a class="navbar-brand" href="{{ url_for('tableinspectormonth') }}"> SDC rapport mensuel </a>
+                            </li>
 
-                    {% if active == "tableinspectoryear" %}
-                        <li id="tableinspectoryear" class="active">
-                    {% else %}
-                        <li id="tableinspectoryear" class="">
-                    {% endif %}
-                            <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> SDC rapport annuel </a>
-                        </li>
+                        {% if active == "tableinspectoryear" %}
+                            <li id="tableinspectoryear" class="active">
+                        {% else %}
+                            <li id="tableinspectoryear" class="">
+                        {% endif %}
+                                <a class="navbar-brand" href="{{ url_for('tableinspectoryear') }}"> SDC rapport annuel </a>
+                            </li>
                     </ul>
-                {% elif session.db_name == "SDD_mois" %}
+                {% elif session.db_name == "SDD" %}
                     <ul class="nav navbar-nav navbar-left">
                         <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
 
-                    {% if active == "ssdmonth" %}
-                        <li id="ssdmonth" class="active">
-                    {% else %}
-                        <li id="ssdmonth" class="">
-                    {% endif %}
-                            <a class="navbar-brand" href="{{ url_for('ssdmonth') }}"> SDD ligne T1 </a>
-                        </li>
-                    </ul>
-                {% else %}
-                    <ul class="nav navbar-nav navbar-left">
-                        <a class="navbar-brand" href="{{ url_for('home') }}">Bienvenue {{ session.user }}</a>
+                        {% if active == "ssdmonth" %}
+                            <li id="ssdmonth" class="active">
+                        {% else %}
+                            <li id="ssdmonth" class="">
+                        {% endif %}
+                                <a class="navbar-brand" href="{{ url_for('ssdmonth') }}"> SDD ligne T1 </a>
+                            </li>
 
-                    {% if active == "ssdmonthstation" %}
-                        <li id="ssdmonthstation" class="active">
-                    {% else %}
-                        <li id="ssdmonthstation" class="">
-                    {% endif %}
-                            <a class="navbar-brand" href="{{ url_for('ssdmonthstation') }}"> SDD par station </a>
-                        </li>
+                        {% if active == "ssdmonthstation" %}
+                            <li id="ssdmonthstation" class="active">
+                        {% else %}
+                            <li id="ssdmonthstation" class="">
+                        {% endif %}
+                                <a class="navbar-brand" href="{{ url_for('ssdmonthstation') }}"> SDD par station </a>
+                            </li>
                     </ul>
                 {% endif %}
 
